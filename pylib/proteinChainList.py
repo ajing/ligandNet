@@ -1,5 +1,8 @@
 """
     This program is majorly for get the chain list for protein, and check whether a ligand is in bindingMOAD list or not.
+    No chain z and no chain with length less than 10
+    Author: ajing
+    Date:   7/17/2013
 """
 
 ## For every_parser

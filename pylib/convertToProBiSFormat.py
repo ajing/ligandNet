@@ -92,7 +92,7 @@ def returnChainsForPDBID( BioUnitChainsDIR ):
             print content
     return BioUnitChainDict
 
-def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsDict = None ):
+def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsDict = None, NumberDict = None ):
     # Basically in the following format:
     # Output format: Index, BioUnitID, ligandChainID, [:proteinChainID and residueNumber]
     # Output2 format: Index, ligandName.ligandChainID,.. ( no info for ligand residue, so ignore that )
@@ -106,6 +106,8 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
             Index = str(index).zfill(5)
             ligandChainID = eachligand
             allproteinChainInfo = ""
+            # The total number of binding site residue
+            bindingSiteNumber =  len(ProBiS_dict[eachBioUnit][eachligand].keys())
             for eachproteinChainID in ProBiS_dict[eachBioUnit][eachligand].keys():
                 ProBiS_dict[eachBioUnit][eachligand][eachproteinChainID].sort()
                 if allproteinChainInfo:
@@ -120,11 +122,21 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
                 if validliganddict[PDBID.upper()][ligandName]:
                     ligandChainID = processStrangeLigandName( ligandChainID )
                     if BioChainsDict is None:
+                        # whether include binding PDB chains or not
                         aline = "\t".join( [ Index, BioUnitID.lower(), ligandChainID, allproteinChainInfo ] ) + "\n"
                         index = index + 1
                     else:
                         try:
-                            aline = "\t".join( [ Index, BioUnitID.lower(), ligandChainID, BioChainsDict[ BioUnitID.lower() ], allproteinChainInfo ] ) + "\n"
+                            NumberingKey = "\t".join([PDBID.upper(), ligandName])
+                            print "NumberingKey"
+                            print NumberingKey
+                            try:
+                                numbering = NumberDict[NumberingKey]
+                            except:
+                                print PDBID
+                                print ligandName
+                                print "cannot file numbering for " + NumberingKey
+                            aline = "\t".join( [ Index, BioUnitID.lower(), ligandChainID, BioChainsDict[ BioUnitID.lower() ], allproteinChainInfo, str(bindingSiteNumber) ] ) + "\n"
                             index = index + 1
                         except:
                             print "cannot find chains for file: " + BioUnitID.lower()
@@ -133,6 +145,18 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
                 continue
             # add one index for each binding site/ligand
     out_obj.close()
+
+def aqeelNumberingParse( infile ):
+    numberdict = dict()
+    for line in open( infile ):
+        content = line.strip().split("\t")
+        numbering = content[0].strip()
+        protein   = content[1].strip()
+        ligand    = content[2].strip()
+        proteinLigand = "\t".join( [protein, ligand] )
+        numberdict[ proteinLigand ] = numbering
+    return numberdict
+
 
 if __name__ == "__main__":
     # for everyparser of valid ligand
@@ -146,7 +170,11 @@ if __name__ == "__main__":
     outfiledir2 = "/users/ajing/ligandNet/pylib/IndexwithLigandInfo.txt"
     ## file for protein id : protein chains
     proteinChainFile = "/users/ajing/ligandNet/pylib/proteinChain.txt"
-    #
     proteinchaindict = returnChainsForPDBID( proteinChainFile )
+    ## file for aqeel's numbering for protein ligand pair
+    aqeelfile = "/users/ahmedaq/work/Probis/LigandID_PDB_LigName_tab.nosql"
+    aqeeldict = aqeelNumberingParse( aqeelfile )
+    print aqeeldict
+    print "aqeeldict"
     probisdict = convertProBiS( infiledir )
-    makeProBiSInput( probisdict, everyparser.ALL, outfiledir1, outfiledir2, proteinchaindict )
+    makeProBiSInput( probisdict, everyparser.ALL, outfiledir1, outfiledir2, proteinchaindict, aqeeldict )

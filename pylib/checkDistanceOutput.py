@@ -55,11 +55,23 @@ def processEachLine( filename, colname ):
         try:
             atom       = getAtom( structure, atomChainID, atomResidue, atomName )
         except:
-            atomResidueName = row_dict[ "residueName" ]
-            atomResidueFull = ( "H_" + atomResidueName.rjust(3), atomResidue, ' ')
-           # print atomchain.child_dict
-           # print atomResidueFull
-            atom       = getAtom( structure, atomChainID, atomResidueFull, atomName )
+            try:
+                atomResidueName = row_dict[ "residueName" ]
+                atomResidueFull = ( "H_" + atomResidueName.rjust(3), atomResidue, ' ')
+                atom       = getAtom( structure, atomChainID, atomResidueFull, atomName )
+            except:
+                try:
+                    atomResidueFull = ( ' ', atomResidue, 'A')
+                    atom       = getAtom( structure, atomChainID, atomResidueFull, atomName )
+                except:
+                    try:
+                        atomResidueName = row_dict[ "residueName" ]
+                        atomResidueFull = ( "H_" + atomResidueName.rjust(3), atomResidue, 'A')
+                        print atomchain.child_dict
+                        print atomResidueFull
+                        atom       = getAtom( structure, atomChainID, atomResidueFull, atomName )
+                    except:
+                        raise "somgthing wrong"
         if minimunDistanceChainToAtom( chain, atom ) > 4:
             wrong_obj.write( eachline )
     wrong_obj.close()
