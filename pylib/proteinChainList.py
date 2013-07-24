@@ -1,5 +1,8 @@
 """
     This program is majorly for get the chain list for protein, and check whether a ligand is in bindingMOAD list or not.
+    No chain z and no chain with length less than 10
+    Author: ajing
+    Date:   7/17/2013
 """
 
 ## For every_parser
@@ -62,7 +65,7 @@ def returnProteinChainID( structure, filename, ligandlist ):
         for chain in model.get_list():
             if chain.id == "z":
                 continue
-            if getChainLength( chain ) > 10:
+            if getChainLength( chain ) > 10 and not chain.id in proteinChains:
                 proteinChains.append( chain.id )
             else:
                 for residue in chain.get_list():

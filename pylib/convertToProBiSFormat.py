@@ -82,23 +82,22 @@ def returnChainsForPDBID( BioUnitChainsDIR ):
     BioUnitChainDict = dict()
     for line in open( BioUnitChainsDIR ):
         content = line.strip().split( "\t" )
-        print content
         try:
             Biounitfile = content[0].lower()
             Chains      = content[1]
             BioUnitChainDict[Biounitfile] = Chains
         except:
-            print "Cannot deal with "
-            print content
+            print content[0]
     return BioUnitChainDict
 
-def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsDict = None ):
+def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsDict = None, NumberDict = None ):
     # Basically in the following format:
     # Output format: Index, BioUnitID, ligandChainID, [:proteinChainID and residueNumber]
     # Output2 format: Index, ligandName.ligandChainID,.. ( no info for ligand residue, so ignore that )
     # Example for output2: 00001 ATP.123.A,ALA.43.C,TYR.44.C
     out_obj = open( outfile, "w" )
     index = 1
+    ExistingPairs = []
     for eachBioUnit in ProBiS_dict.keys():
         BioUnitID = eachBioUnit
         ligandlist = ",".join(ProBiS_dict[eachBioUnit].keys())
@@ -106,8 +105,11 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
             Index = str(index).zfill(5)
             ligandChainID = eachligand
             allproteinChainInfo = ""
+            # The total number of binding site residue
+            bindingSiteNumber = 0
             for eachproteinChainID in ProBiS_dict[eachBioUnit][eachligand].keys():
                 ProBiS_dict[eachBioUnit][eachligand][eachproteinChainID].sort()
+                bindingSiteNumber = bindingSiteNumber + len(ProBiS_dict[eachBioUnit][eachligand][eachproteinChainID])
                 if allproteinChainInfo:
                     allproteinChainInfo = allproteinChainInfo + " or :" + eachproteinChainID + " and (" + ",".join( map( str, ProBiS_dict[eachBioUnit][eachligand][eachproteinChainID] ) ) + ")"
                 else:
@@ -120,11 +122,14 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
                 if validliganddict[PDBID.upper()][ligandName]:
                     ligandChainID = processStrangeLigandName( ligandChainID )
                     if BioChainsDict is None:
+                        # whether include binding PDB chains or not
                         aline = "\t".join( [ Index, BioUnitID.lower(), ligandChainID, allproteinChainInfo ] ) + "\n"
                         index = index + 1
                     else:
                         try:
-                            aline = "\t".join( [ Index, BioUnitID.lower(), ligandChainID, BioChainsDict[ BioUnitID.lower() ], allproteinChainInfo ] ) + "\n"
+                            NumberingKey = "\t".join([PDBID.upper(), ligandName])
+                            numbering = NumberDict[NumberingKey]
+                            aline = "\t".join( [ Index, numbering, BioUnitID.lower(), ligandChainID, BioChainsDict[ BioUnitID.lower() ], allproteinChainInfo, str(bindingSiteNumber) ] ) + "\n"
                             index = index + 1
                         except:
                             print "cannot find chains for file: " + BioUnitID.lower()
@@ -133,6 +138,18 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
                 continue
             # add one index for each binding site/ligand
     out_obj.close()
+
+def aqeelNumberingParse( infile ):
+    numberdict = dict()
+    for line in open( infile ):
+        content = line.strip().split("\t")
+        numbering = content[0].strip()
+        protein   = content[1].strip()
+        ligand    = content[2].strip()
+        proteinLigand = "\t".join( [protein, ligand] )
+        numberdict[ proteinLigand ] = numbering
+    return numberdict
+
 
 if __name__ == "__main__":
     # for everyparser of valid ligand
@@ -146,7 +163,9 @@ if __name__ == "__main__":
     outfiledir2 = "/users/ajing/ligandNet/pylib/IndexwithLigandInfo.txt"
     ## file for protein id : protein chains
     proteinChainFile = "/users/ajing/ligandNet/pylib/proteinChain.txt"
-    #
     proteinchaindict = returnChainsForPDBID( proteinChainFile )
+    ## file for aqeel's numbering for protein ligand pair
+    aqeelfile = "/users/ahmedaq/work/Probis/LigandID_PDB_LigName_tab.nosql"
+    aqeeldict = aqeelNumberingParse( aqeelfile )
     probisdict = convertProBiS( infiledir )
-    makeProBiSInput( probisdict, everyparser.ALL, outfiledir1, outfiledir2, proteinchaindict )
+    makeProBiSInput( probisdict, everyparser.ALL, outfiledir1, outfiledir2, proteinchaindict, aqeeldict )
