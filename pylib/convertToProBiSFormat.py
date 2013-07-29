@@ -2,6 +2,8 @@
     This file is for convert original file of Rich's amino_acid_counter.pl to what ProBiS like
     author: ajing
     Data  : 7/15/2013
+    ChangeLog:
+        7/29/2013 add another column for number of members in that family
 '''
 
 ## For every_parser
@@ -82,14 +84,12 @@ def returnChainsForPDBID( BioUnitChainsDIR ):
     BioUnitChainDict = dict()
     for line in open( BioUnitChainsDIR ):
         content = line.strip().split( "\t" )
-        print content
         try:
             Biounitfile = content[0].lower()
             Chains      = content[1]
             BioUnitChainDict[Biounitfile] = Chains
         except:
-            print "Cannot deal with "
-            print content
+            print content[0]
     return BioUnitChainDict
 
 def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsDict = None, NumberDict = None ):
@@ -99,6 +99,7 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
     # Example for output2: 00001 ATP.123.A,ALA.43.C,TYR.44.C
     out_obj = open( outfile, "w" )
     index = 1
+    ExistingPairs = []
     for eachBioUnit in ProBiS_dict.keys():
         BioUnitID = eachBioUnit
         ligandlist = ",".join(ProBiS_dict[eachBioUnit].keys())
@@ -107,9 +108,10 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
             ligandChainID = eachligand
             allproteinChainInfo = ""
             # The total number of binding site residue
-            bindingSiteNumber =  len(ProBiS_dict[eachBioUnit][eachligand].keys())
+            bindingSiteNumber = 0
             for eachproteinChainID in ProBiS_dict[eachBioUnit][eachligand].keys():
                 ProBiS_dict[eachBioUnit][eachligand][eachproteinChainID].sort()
+                bindingSiteNumber = bindingSiteNumber + len(ProBiS_dict[eachBioUnit][eachligand][eachproteinChainID])
                 if allproteinChainInfo:
                     allproteinChainInfo = allproteinChainInfo + " or :" + eachproteinChainID + " and (" + ",".join( map( str, ProBiS_dict[eachBioUnit][eachligand][eachproteinChainID] ) ) + ")"
                 else:
@@ -128,18 +130,12 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
                     else:
                         try:
                             NumberingKey = "\t".join([PDBID.upper(), ligandName])
-                            print "NumberingKey"
-                            print NumberingKey
-                            try:
-                                numbering = NumberDict[NumberingKey]
-                            except:
-                                print PDBID
-                                print ligandName
-                                print "cannot file numbering for " + NumberingKey
-                            aline = "\t".join( [ Index, BioUnitID.lower(), ligandChainID, BioChainsDict[ BioUnitID.lower() ], allproteinChainInfo, str(bindingSiteNumber) ] ) + "\n"
+                            numbering = NumberDict[NumberingKey]
+                            aline = "\t".join( [ Index, numbering, BioUnitID.lower(), ligandChainID, BioChainsDict[ BioUnitID.lower() ], allproteinChainInfo, str(bindingSiteNumber) ] ) + "\n"
                             index = index + 1
                         except:
                             print "cannot find chains for file: " + BioUnitID.lower()
+                            continue
                     out_obj.write(aline)
             except:
                 continue
@@ -174,7 +170,5 @@ if __name__ == "__main__":
     ## file for aqeel's numbering for protein ligand pair
     aqeelfile = "/users/ahmedaq/work/Probis/LigandID_PDB_LigName_tab.nosql"
     aqeeldict = aqeelNumberingParse( aqeelfile )
-    print aqeeldict
-    print "aqeeldict"
     probisdict = convertProBiS( infiledir )
     makeProBiSInput( probisdict, everyparser.ALL, outfiledir1, outfiledir2, proteinchaindict, aqeeldict )

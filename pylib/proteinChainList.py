@@ -65,7 +65,7 @@ def returnProteinChainID( structure, filename, ligandlist ):
         for chain in model.get_list():
             if chain.id == "z":
                 continue
-            if getChainLength( chain ) > 10:
+            if getChainLength( chain ) > 10 and not chain.id in proteinChains:
                 proteinChains.append( chain.id )
             else:
                 for residue in chain.get_list():

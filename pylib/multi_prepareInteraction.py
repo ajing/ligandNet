@@ -124,8 +124,6 @@ def goThroughAllFiles():
     print argumentlist
     result = pool.map_async( partial_operateOneFile, argumentlist )
     resulttxt = result.get()
-    resultfile = open("poolresult.txt", "w")
-    resultfile.write(resulttxt)
     #for filename in os.listdir( __BIOUNITDIR__ ):
     #    filedir = __BIOUNITDIR__ + filename
     #    #p = multiprocessing.Process( target = operateOneFile, args = (filedir, inputdir, __WORKDIR__, final_dir))
@@ -136,7 +134,7 @@ def goThroughAllFiles2():
     # For only run on file in __INPUTDIR__
     pool = Pool(processes = 8)
     inputdir = __INPUTDIR__
-    argumentlist = [ __INPUTDIR__ + filename for filename in os.listdir( __INPUTDIR__ ) ]
+    argumentlist = [ __INPUTDIR__ + filename for filename in os.listdir( __INPUTDIR__ ) if filterInputFile(filename, inputdir)]
    # print argumentlist
     result = pool.map_async( partial_operateOneFileWithExistingFiles, argumentlist )
     resulttxt = result.get()
