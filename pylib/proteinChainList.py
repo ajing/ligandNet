@@ -13,6 +13,7 @@ from every_parser import every_parser
 
 import Bio
 from Bio.PDB.PDBExceptions import PDBConstructionException
+############## exception for ligand which is less than 10 residues, but not in every.csv file ##############
 __EXCEPTION_FILE__ = "/users/ajing/ligandNet/pylib/proteinChainException.txt"
 __ERROR_FILE__ = "/users/ajing/ligandNet/pylib/proteinChainError.txt"
 __BIOUNIT_DIR__ = "/users/ajing/ligandNet/pylib/BindingMoad2011_test/BindingMoad2011/"
@@ -88,23 +89,85 @@ def processOneBioUnit( biounitdir ):
     out_obj.write( filename + "\t" + "".join(PDBChainIDs) + "\n" )
     out_obj.close()
 
+def BioUnitFilter( BioUnitDirectory, existingfile ):
+    # return new biounit file list without the file already in __OUTPUT_PROTEINLIGAND__
+    filedir = os.listdir( BioUnitDirectory )
+    # existing protein id don't need to process
+    proteinIDList = []
+    PDBList = []
+    for line in open(existingfile):
+        content = line.strip().split("\t")
+        proteinIDList.append( content[0].lower() )
+        PDBID   = content[0].split(".")[0]
+        if not PDBID in PDBList:
+            PDBList.append( PDBID )
+    NewDirectoryList = []
+    totalPDBBioUnitDirectory = []
+    for each in filedir:
+        PDB = each.split(".")[0]
+        if not PDB in totalPDBBioUnitDirectory:
+            totalPDBBioUnitDirectory.append( PDB )
+        if not each.lower() in proteinIDList:
+            NewDirectoryList.append( each )
+    print "total number of files in : " + BioUnitDirectory
+    print len(filedir)
+    print "Distinctive PDBs in : " + BioUnitDirectory
+    print len(totalPDBBioUnitDirectory)
+    print "Distinctive PDBs in existing file : " + existingfile
+    print len(PDBList)
+    print "BioUnit files I still work on for : " + BioUnitDirectory
+    print len(NewDirectoryList)
+    return NewDirectoryList
+
+def runOneBioUnit( biounitdirlist ):
+    error_obj = open( __ERROR_FILE__, "a" )
+    for each in biounitdirlist:
+        try:
+            processOneBioUnit( each )
+        except:
+            print "something wrong with " + each
+            error_obj.write( "something wrong with " + each + "\n" )
+    error_obj.close()
+
+def callbackforBioUnit( biounitdir ):
+    error_obj = open( __ERROR_FILE__, "a" )
+    error_obj.write( "something wrong with " + biounitdir + "\n" )
+    error_obj.close()
+
+def removeExceptionFile( BioUnitDirList ):
+    fileCannotRead = [ "3nh3.bio1" ]
+    newList = []
+    for each in BioUnitDirList:
+        if not each in fileCannotRead:
+            newList.append( each )
+    return newList
+
+def addDefaultBioUnit():
+    output_obj = open( __OUTPUT_PROTEINLIGAND__, "a")
+    line = "3nh3.bio1" + "\t" + "X\n"
+    output_obj.write( line )
+
 def main():
     # remove error and output files first
     try:
-        os.remove( __ERROR_FILE__ )
+        #os.remove( __ERROR_FILE__ )
         os.remove( __EXCEPTION_FILE__ )
-        os.remove( __OUTPUT_PROTEINLIGAND__ )
     except:
         pass
+    if not os.path.exists(__OUTPUT_PROTEINLIGAND__):
+        addDefaultBioUnit()
     everyparser = every_parser()
     everyparser.find_PDBID_ValidLigand()
     global __ALL__
     __ALL__ = everyparser.ALL
-    pool = Pool(processes = 6)
-    argumentlist = [ __BIOUNIT_DIR__ + filename for filename in os.listdir(__BIOUNIT_DIR__)]
-    result = pool.map_async( processOneBioUnit, argumentlist)
-    resulttxt = result.get()
-    print dir(resulttxt)
+    pool = Pool(processes = 7)
+    argumentlist = [ __BIOUNIT_DIR__ + filename for filename in removeExceptionFile( BioUnitFilter(__BIOUNIT_DIR__, __OUTPUT_PROTEINLIGAND__) ) ]
+    ####################### 8/19/2013 checking for what's wrong with each file  #########################
+    #runOneBioUnit(argumentlist)
+    #####################################################################################################
+    result = pool.map_async( processOneBioUnit, argumentlist )
+    resulttxt = result.wait()
+    print resulttxt
 
 if __name__ == "__main__":
     main()
