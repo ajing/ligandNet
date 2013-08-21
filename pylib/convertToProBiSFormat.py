@@ -89,20 +89,26 @@ def returnChainsForPDBID( BioUnitChainsDIR ):
             Chains      = content[1]
             BioUnitChainDict[Biounitfile] = Chains
         except:
-            print content[0]
+            print "cannot find protein chains for " + content[0]
     return BioUnitChainDict
 
-def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsDict = None, NumberDict = None ):
+def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsDict = None, NumberDict = None, PDBMemberNumberDict = None ):
     # Basically in the following format:
     # Output format: Index, BioUnitID, ligandChainID, [:proteinChainID and residueNumber]
     # Output2 format: Index, ligandName.ligandChainID,.. ( no info for ligand residue, so ignore that )
     # Example for output2: 00001 ATP.123.A,ALA.43.C,TYR.44.C
+    # 7/30/2013 only keep one ligand for one PDB
     out_obj = open( outfile, "w" )
     index = 1
     ExistingPairs = []
+    # 7/30/2013 Here is the structure to keep track only one case for each ligand, remove the duplication in biounit also
+    ligandtrack = dict()
     for eachBioUnit in ProBiS_dict.keys():
-        BioUnitID = eachBioUnit
-        ligandlist = ",".join(ProBiS_dict[eachBioUnit].keys())
+        ligandlist  = ",".join(ProBiS_dict[eachBioUnit].keys())
+        BioUnitID   = eachBioUnit
+        PDBID       = BioUnitID.split('.')[0]
+        if not PDBID in ligandtrack.keys():
+            ligandtrack[PDBID] = []
         for eachligand in ProBiS_dict[eachBioUnit].keys():
             Index = str(index).zfill(5)
             ligandChainID = eachligand
@@ -117,9 +123,13 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
                 else:
                     allproteinChainInfo = allproteinChainInfo + "[:" + eachproteinChainID + " and (" + ",".join( map( str, ProBiS_dict[eachBioUnit][eachligand][eachproteinChainID] ) ) + ")"
             allproteinChainInfo = allproteinChainInfo + "]"
-            PDBID       = BioUnitID.split('.')[0]
             ligandName  = ligandChainID.split('.')[0]
             ligandChain = ligandChainID.split('.')[1]
+            # 7/30/2013 for only one ligand
+            if ligandName in ligandtrack[PDBID]:
+                continue
+            else:
+                ligandtrack[PDBID].append(ligandName)
             try:
                 if validliganddict[PDBID.upper()][ligandName]:
                     ligandChainID = processStrangeLigandName( ligandChainID )
@@ -131,7 +141,7 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
                         try:
                             NumberingKey = "\t".join([PDBID.upper(), ligandName])
                             numbering = NumberDict[NumberingKey]
-                            aline = "\t".join( [ Index, numbering, BioUnitID.lower(), ligandChainID, BioChainsDict[ BioUnitID.lower() ], allproteinChainInfo, str(bindingSiteNumber) ] ) + "\n"
+                            aline = "\t".join( [ Index, numbering, BioUnitID.lower(), ligandChainID, BioChainsDict[ BioUnitID.lower() ], allproteinChainInfo, str(bindingSiteNumber), PDBMemberNumberDict[PDBID.upper()] ] ) + "\n"
                             index = index + 1
                         except:
                             print "cannot find chains for file: " + BioUnitID.lower()
@@ -153,12 +163,31 @@ def aqeelNumberingParse( infile ):
         numberdict[ proteinLigand ] = numbering
     return numberdict
 
+def assignEachPDBwithNumberofMembers( PDBLeader_dict ):
+    PDBMember_dict = dict()
+    leader_dict = dict()
+    leaderlist = []
+    for each in PDBLeader_dict.keys():
+        leader = PDBLeader_dict[each]
+        if not leader in leaderlist:
+            leaderlist.append( leader )
+        try:
+            leader_dict[leader] += 1
+        except:
+            leader_dict[leader]  = 1
+    for each in PDBLeader_dict.keys():
+        leader = PDBLeader_dict[ each ]
+        if each in leaderlist:
+            PDBMember_dict[each] = leader + "\t" + str(leader_dict[leader])
+        else:
+            PDBMember_dict[each] = leader + "\t" + "-"
+    return PDBMember_dict
 
 if __name__ == "__main__":
     # for everyparser of valid ligand
     everyparser = every_parser()
     everyparser.find_PDBID_ValidLigand()
-    #print everyparser.ALL
+    pdb_with_numberofmembers = assignEachPDBwithNumberofMembers( everyparser.ALL_leader )
 
     infiledir = "/users/ajing/ligandNet/pylib/tmp_test/final.txt"
     #infiledir = "/users/ajing/ligandNet/pylib/final_tmp.txt"
@@ -171,4 +200,4 @@ if __name__ == "__main__":
     aqeelfile = "/users/ahmedaq/work/Probis/LigandID_PDB_LigName_tab.nosql"
     aqeeldict = aqeelNumberingParse( aqeelfile )
     probisdict = convertProBiS( infiledir )
-    makeProBiSInput( probisdict, everyparser.ALL, outfiledir1, outfiledir2, proteinchaindict, aqeeldict )
+    makeProBiSInput( probisdict, everyparser.ALL, outfiledir1, outfiledir2, proteinchaindict, aqeeldict, pdb_with_numberofmembers)

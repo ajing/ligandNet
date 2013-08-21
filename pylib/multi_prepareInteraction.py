@@ -28,9 +28,12 @@ __INPUTDIR__ = __EXTRACTDIR__ + "BindingMoad2011/"
 #__WORKDIR__ = "/users/ajing/ligandNet/pylib/tmp/"
 __WORKDIR__ = "/users/ajing/ligandNet/pylib/tmp_test/"
 
+#################### Parameter ########################
+__MAX_DISTANCE__ = 4.5
 
 #@timeout(10)
-def callRichsCode(filedir, maxdistance, outputdir):
+def callRichsCode(filedir, outputdir):
+    maxdistance = str(__MAX_DISTANCE__)
     commandlist = [ "perl", __AMINOACIDDIR__, filedir, "2", "notimportant2.txt", maxdistance, outputdir]
     print commandlist
     command = subprocess.list2cmdline( commandlist)
@@ -76,7 +79,7 @@ def operateOneFile( filedir, inputdir, workdir, final ):
             inputfile = inputdir + each
             rich_out = workdir + each + "_out"
             tmp = workdir + each + "_tmp"
-            callRichsCode( inputfile, str(4), rich_out)    # str(4) means the maximun distance is 4, also mentioned in callRichsCode
+            callRichsCode( inputfile, rich_out)    # str(4) means the maximun distance is 4, also mentioned in callRichsCode
             changeFileFormate( rich_out, tmp )
             concatenateFiles( tmp, final )
 
@@ -93,7 +96,7 @@ def partial_operateOneFile( filedir ):
             inputfile = inputdir + each
             rich_out = workdir + each + "_out"
             tmp = workdir + each + "_tmp"
-            callRichsCode( inputfile, str(4), rich_out)    # str(4) means the maximun distance is 4, also mentioned in callRichsCode
+            callRichsCode( inputfile, rich_out)    # str(4) means the maximun distance is 4, also mentioned in callRichsCode
             changeFileFormate( rich_out, tmp )
             concatenateFiles( tmp, final )
 
@@ -106,7 +109,7 @@ def partial_operateOneFileWithExistingFiles( filedir ):
     inputfile = inputdir + os.listdir(inputdir)[0]
     rich_out = workdir + filename + "_out"
     tmp = workdir + filename + "_tmp"
-    callRichsCode( filedir, str(4), rich_out)    # str(4) means the maximun distance is 4, also mentioned in callRichsCode
+    callRichsCode( filedir, rich_out )    # str(4) means the maximun distance is 4, also mentioned in callRichsCode
     changeFileFormate( rich_out, tmp )
     concatenateFiles( tmp, final )
 
@@ -134,7 +137,7 @@ def goThroughAllFiles2():
     # For only run on file in __INPUTDIR__
     pool = Pool(processes = 8)
     inputdir = __INPUTDIR__
-    argumentlist = [ __INPUTDIR__ + filename for filename in os.listdir( __INPUTDIR__ ) if filterInputFile(filename, inputdir)]
+    argumentlist = [ __INPUTDIR__ + filename for filename in os.listdir( __INPUTDIR__ ) ]
    # print argumentlist
     result = pool.map_async( partial_operateOneFileWithExistingFiles, argumentlist )
     resulttxt = result.get()
