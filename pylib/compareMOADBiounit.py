@@ -27,6 +27,8 @@ from multiprocessing import Pool
 # a global variable for ALL
 __ALL__ = dict()
 
+from timeout import *
+
 def printAllPossibleLowercaseChain( filedir ):
     """
        I want to check whether people usually use lowercase to mark ligands, but actually chain name for ligands can be anything
@@ -180,8 +182,12 @@ def mainCompare2():
     argumentlist = __ALL__.keys()
     print argumentlist
     result = pool.map_async( processOnePDBID, argumentlist)
-    resulttxt = result.get()
-    print dir(resulttxt)
+    try:
+        resulttxt = result.get()
+    except TimeoutError as e:
+        print e.error_message
+
+    #print dir(resulttxt)
     #resultfile = open("poolresult.txt", "w")
     #resultfile.write(resulttxt)
     #for eachPDBID in __ALL__.keys():

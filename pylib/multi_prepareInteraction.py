@@ -15,10 +15,14 @@ from multiprocessing import Pool
 from functools import partial
 import time
 import random
+<<<<<<< HEAD
 #from timeout import timeout
 
 #__AMINOACIDDIR__ = "/users/ajing/perllib/amino_acid_counter.pl"
 __AMINOACIDDIR__ = "/users/dicksmit/amino_acid_counter.pl"
+from timeout import timeout
+
+__AMINOACIDDIR__ = "/users/ajing/perllib/amino_acid_counter.pl"
 #__BIOUNITDIR__ = "/users/ajing/BindingMOAD/biou/"
 __BIOUNITDIR__ = "/users/ajing/BindingMOAD/biou_test/"
 #__TMPDIR__ = "/users/ajing/ligandNet/pylib/BindingMoad2011/"
@@ -121,7 +125,7 @@ def filterInputFile(filename, inputdir):
     return True
 
 def goThroughAllFiles():
-    pool = Pool(processes = 8)
+    pool = Pool(processes = 10)
     inputdir = __INPUTDIR__
     argumentlist = [ __BIOUNITDIR__ + filename for filename in os.listdir( __BIOUNITDIR__ ) if filterInputFile(filename, inputdir) ]
     print argumentlist
