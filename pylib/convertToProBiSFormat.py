@@ -109,7 +109,14 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
         PDBID       = BioUnitID.split('.')[0]
         if not PDBID in ligandtrack.keys():
             ligandtrack[PDBID] = []
-        for eachligand in ProBiS_dict[eachBioUnit].keys():
+        try:
+            ligandList = ProBiS_dict[eachBioUnit].keys()
+            ligandList.sort()
+            print ligandList
+        except:
+            print "something wrong"
+            continue
+        for eachligand in ligandList:
             Index = str(index).zfill(5)
             ligandChainID = eachligand
             allproteinChainInfo = ""
@@ -189,12 +196,11 @@ if __name__ == "__main__":
     everyparser.find_PDBID_ValidLigand()
     pdb_with_numberofmembers = assignEachPDBwithNumberofMembers( everyparser.ALL_leader )
 
-    infiledir = "/users/ajing/ligandNet/pylib/tmp_test/final.txt"
-    #infiledir = "/users/ajing/ligandNet/pylib/final_tmp.txt"
-    outfiledir1 = "/users/ajing/ligandNet/pylib/ProbisInput.txt"
-    outfiledir2 = "/users/ajing/ligandNet/pylib/IndexwithLigandInfo.txt"
+    infiledir = "/users/ajing/ligandNet/tmp_test/final.txt"
+    outfiledir1 = "/users/ajing/ligandNet/ProbisInput_test.txt"
+    outfiledir2 = "/users/ajing/ligandNet/IndexwithLigandInfo.txt"
     ## file for protein id : protein chains
-    proteinChainFile = "/users/ajing/ligandNet/pylib/proteinChain.txt"
+    proteinChainFile = "/users/ajing/ligandNet/Data/proteinChain.txt"
     proteinchaindict = returnChainsForPDBID( proteinChainFile )
     ## file for aqeel's numbering for protein ligand pair
     aqeelfile = "/users/ahmedaq/work/Probis/LigandID_PDB_LigName_tab.nosql"
