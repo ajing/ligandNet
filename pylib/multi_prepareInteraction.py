@@ -15,12 +15,9 @@ from multiprocessing import Pool
 from functools import partial
 import time
 import random
-<<<<<<< HEAD
-#from timeout import timeout
 
 #__AMINOACIDDIR__ = "/users/ajing/perllib/amino_acid_counter.pl"
 __AMINOACIDDIR__ = "/users/dicksmit/amino_acid_counter.pl"
-from timeout import timeout
 
 __AMINOACIDDIR__ = "/users/ajing/perllib/amino_acid_counter.pl"
 #__BIOUNITDIR__ = "/users/ajing/BindingMOAD/biou/"
@@ -32,8 +29,6 @@ __INPUTDIR__ = __EXTRACTDIR__ + "BindingMoad2011/"
 #__WORKDIR__ = "/users/ajing/ligandNet/pylib/tmp/"
 __WORKDIR__ = "/users/ajing/ligandNet/pylib/tmp_test/"
 
-
-#@timeout(10)
 def callRichsCode(filedir, maxdistance, outputdir):
     commandlist = [ "perl", __AMINOACIDDIR__, filedir, "2", "notimportant2.txt", maxdistance, outputdir]
     print commandlist

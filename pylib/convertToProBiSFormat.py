@@ -109,7 +109,7 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
             ligandList.sort()
             print ligandList
         except:
-            print "something wrong"
+            print "something wrong with ligandList" + ",".join(PDBID)
             continue
         for eachligand in ligandList:
             Index = str(index).zfill(5)
@@ -169,7 +169,7 @@ if __name__ == "__main__":
 
     infiledir = "/users/ajing/ligandNet/tmp_test/final.txt"
     outfiledir1 = "/users/ajing/ligandNet/ProbisInput_test.txt"
-    outfiledir2 = "/users/ajing/ligandNet/IndexwithLigandInfo.txt"
+    outfiledir2 = "/users/ajing/ligandNet/Data/IndexwithLigandInfo.txt"
     ## file for protein id : protein chains
     proteinChainFile = "/users/ajing/ligandNet/Data/proteinChain.txt"
     proteinchaindict = returnChainsForPDBID( proteinChainFile )
