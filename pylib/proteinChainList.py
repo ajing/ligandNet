@@ -14,10 +14,11 @@ from every_parser import every_parser
 import Bio
 from Bio.PDB.PDBExceptions import PDBConstructionException
 ############## exception for ligand which is less than 10 residues, but not in every.csv file ##############
-__EXCEPTION_FILE__ = "/users/ajing/ligandNet/pylib/proteinChainException.txt"
-__ERROR_FILE__ = "/users/ajing/ligandNet/pylib/proteinChainError.txt"
-__BIOUNIT_DIR__ = "/users/ajing/ligandNet/pylib/BindingMoad2011_test/BindingMoad2011/"
-__OUTPUT_PROTEINLIGAND__ = "/users/ajing/ligandNet/pylib/proteinChain.txt"
+__EXCEPTION_FILE__ = "/users/ajing/ligandNet/Error/proteinChainException.txt"
+__ERROR_FILE__ = "/users/ajing/ligandNet/Error/proteinChainError.txt"
+__BIOUNIT_DIR__ = "/users/ajing/ligandNet/2012_biounits/"
+__BIOUNIT_CANNOT_READ__ = "/users/ajing/ligandNet/Data/defaultProteinChainList.txt"
+__OUTPUT_PROTEINLIGAND__ = "/users/ajing/ligandNet/Data/proteinChain.txt"
 
 from multiprocessing import Pool
 # a global variable for ALL
@@ -43,9 +44,12 @@ def makeStructure(filename):
     try:
         structure = Bio.PDB.PDBParser(PERMISSIVE = 1).get_structure(pdb_code, pdb_filename)
     except PDBConstructionException:
-        error_obj.write( w.message )
+        error_obj.write( "some value error when reading: " + pdb_code + "\n")
+        error_obj.close()
+        return False
     except:
-        error_obj.write( "some value error when reading: " + pdb_code )
+        error_obj.write( "some value error when reading: " + pdb_code + "\n")
+        error_obj.close()
         return False
     error_obj.close()
     return structure
@@ -77,15 +81,32 @@ def returnProteinChainID( structure, filename, ligandlist ):
                         exception_obj.write( "\t".join( [filename, residueName, chain.id] ) + "\n" )
     return proteinChains
 
+def returnProteinChainIDSimple( biounitdir ):
+    # this function only take SEQRES for all chain ids
+    # For simplicity here we only keep chain id with more than 13 residues.
+    exception_obj = open( __EXCEPTION_FILE__, "a")
+    chainIDList = []
+    proteinChains = []
+    for line in open( biounitdir ):
+        if line.startswith( "SEQRES" ):
+            chainID = line[11]
+            if chainID in chainIDList and not chainID in proteinChains:
+                proteinChains.append( chainID )
+            else:
+                chainIDList.append( chainID )
+    proteinChains.sort()
+    return proteinChains
+
 def processOneBioUnit( biounitdir ):
     out_obj = open( __OUTPUT_PROTEINLIGAND__, "a")
-    everyparser = every_parser()
-    everyparser.find_PDBID_ValidLigand()
-    ALL = everyparser.ALL
-    structure = makeStructure( biounitdir )
     filename  = biounitdir.split("/")[-1]
     PDBID     = filename[:4].upper()
-    PDBChainIDs = returnProteinChainID( structure, filename, __ALL__[PDBID].keys() )
+    try:
+        structure = makeStructure( biounitdir )
+        PDBChainIDs = returnProteinChainID( structure, filename, __ALL__[PDBID].keys() )
+    except:
+        print "something wrong with " + filename
+        PDBChainIDs = returnProteinChainIDSimple( biounitdir )
     out_obj.write( filename + "\t" + "".join(PDBChainIDs) + "\n" )
     out_obj.close()
 
@@ -135,7 +156,10 @@ def callbackforBioUnit( biounitdir ):
     error_obj.close()
 
 def removeExceptionFile( BioUnitDirList ):
-    fileCannotRead = [ "3nh3.bio1" ]
+    fileCannotRead = []
+    for line in open(__BIOUNIT_CANNOT_READ__):
+        content = line.strip().split("\t")
+        fileCannotRead.append( content[0] )
     newList = []
     for each in BioUnitDirList:
         if not each in fileCannotRead:
@@ -143,9 +167,11 @@ def removeExceptionFile( BioUnitDirList ):
     return newList
 
 def addDefaultBioUnit():
+    # some biounit files cannot be processed by biopython, so here I just add it as default using information in "SEQRES"
     output_obj = open( __OUTPUT_PROTEINLIGAND__, "a")
-    line = "3nh3.bio1" + "\t" + "X\n"
-    output_obj.write( line )
+    for line in open(__BIOUNIT_CANNOT_READ__):
+        output_obj.write( line )
+    output_obj.close()
 
 def main():
     # remove error and output files first
