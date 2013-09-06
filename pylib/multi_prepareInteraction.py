@@ -15,6 +15,8 @@ from multiprocessing import Pool
 from functools import partial
 import time
 import random
+# a timeout wrapper for function
+import timeout
 
 __AMINOACIDDIR__ = "/users/dicksmit/amino_acid_counter.pl"
 __BIOUNITDIR__ = "/users/ajing/BindingMOAD/biou_test/"
