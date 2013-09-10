@@ -8,7 +8,10 @@
 
 ## For every_parser
 import sys
+import os
 __previous_pylib__ = "/users/ajing/pylib"
+#__INPUTDIR__ = "/users/ajing/ligandNet/2012_biounits/"
+__INPUTDIR__ = "/users/ajing/ligandNet/BindingMoad2011_test/BindingMoad2011/"
 sys.path.append(__previous_pylib__)
 from every_parser import every_parser
 
@@ -193,7 +196,17 @@ def assignEachPDBwithNumberofMembers( PDBLeader_dict ):
             PDBMember_dict[each] = leader + "\t" + "-"
     return PDBMember_dict
 
-if __name__ == "__main__":
+def existingStatistics( probisdict ):
+    biounits = probisdict.keys()
+    print "Number of biounit files: " + str(len(biounits))
+    PDBs     = set( [ each.split(".")[0] for each in biounits ])
+    print "Number of PDBs: " + str(len(PDBs))
+    filelist = os.listdir( __INPUTDIR__ )
+    print "Total number of biounit files: " + str(len(filelist))
+    AllPDBs     = set( [ each.split(".")[0] for each in filelist])
+    print "Total number of PDBs: " + str(len(AllPDBs))
+
+def main():
     # for everyparser of valid ligand
     everyparser = every_parser()
     everyparser.find_PDBID_ValidLigand()
@@ -210,3 +223,13 @@ if __name__ == "__main__":
     aqeeldict = aqeelNumberingParse( aqeelfile )
     probisdict = convertProBiS( infiledir )
     makeProBiSInput( probisdict, everyparser.ALL, outfiledir1, outfiledir2, proteinchaindict, aqeeldict, pdb_with_numberofmembers)
+
+def main2():
+    infiledir = "/users/ajing/ligandNet/tmp_test/final.txt"
+    probisdict = convertProBiS( infiledir )
+    existingStatistics( probisdict )
+
+if __name__ == "__main__":
+    #main()
+    main2()
+
