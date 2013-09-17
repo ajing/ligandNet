@@ -12,6 +12,7 @@ import os
 __previous_pylib__ = "/users/ajing/pylib"
 #__INPUTDIR__ = "/users/ajing/ligandNet/2012_biounits/"
 __INPUTDIR__ = "/users/ajing/ligandNet/BindingMoad2011_test/BindingMoad2011/"
+__OUTPUT__ = "/users/ajing/ligandNet/ProbisInput_test.txt"
 sys.path.append(__previous_pylib__)
 from every_parser import every_parser
 
@@ -63,23 +64,33 @@ def convertProBiS( infile ):
             output_dict[ content_dict["BIOUNIT"] ][ content_dict["ligandName"] + "." + content_dict["ligandChainID"] ][ content_dict["proteinChainID"] ].append( int(content_dict["residueNumber"]) )
     return output_dict
 
+def removeEmpty( alist ):
+    new_list = []
+    for each in alist:
+        if each:
+            new_list.append( each )
+    return new_list
+
 def processStrangeLigandName( completeLigandName ):
     # Here completeLigandName means like BGC.D or GLC BGC.B_C
     ligandName = completeLigandName.split(".")[0]
     ChainID    = completeLigandName.split(".")[1]
     ligandName.strip()
-    ligandNamelist = ligandName.split(" ")
+    ligandNamelist = removeEmpty( ligandName.split(" ") )
     ChainIDlist    = ChainID.split("_")
     ligandNamelen  = len(ligandNamelist)
     if ligandNamelen == 1:
         return completeLigandName
     else:
+        if len(ChainIDlist) == 1:
+            ChainIDlist = ChainIDlist * ligandNamelen
         newNamelist = []
         for i in range(ligandNamelen):
             try:
                 newNamelist.append( ligandNamelist[i] + "." + ChainIDlist[i] )
             except:
-                raise "Strange ligand name: " + completeLigandName
+                print "Strange ligand name: " + completeLigandName
+                raise TypeError
         return "_".join( newNamelist )
 
 def returnChainsForPDBID( BioUnitChainsDIR ):
@@ -95,73 +106,152 @@ def returnChainsForPDBID( BioUnitChainsDIR ):
             print "cannot find protein chains for " + content[0]
     return BioUnitChainDict
 
+def contains(small, big):
+    for i in xrange(len(big)-len(small)+1):
+        for j in xrange(len(small)):
+            if big[i+j] != small[j]:
+                break
+        else:
+            return i, i+len(small)
+    return False
+
+def ligandCompare( ligand1, ligand2 ):
+    list1 = sorted( removeEmpty( ligand1.split(" ") ) )
+    list2 = sorted( removeEmpty( ligand2.split(" ") ) )
+    if contains( list1, list2 ) or contains( list2, list1 ):
+        return True
+    return False
+
+def checkValid( PDBID, ligand, validdict ):
+    ligandlist = validdict[ PDBID.upper() ]
+    for each in ligandlist.keys():
+        if ligandCompare( ligand, each ):
+            return ligandlist[ each ]
+    return False
+
+class ligandFilter:
+    # only keep one ligand in output file
+    def __init__(self):
+        self.ligandtrack = dict()
+
+    def checkLigand( self, PDBID, ligand ):
+        if PDBID not in self.ligandtrack.keys():
+            self.ligandtrack[PDBID] = []
+            return False
+        if ligand not in self.ligandtrack[ PDBID ]:
+            self.ligandtrack[ PDBID ].append( ligand )
+            return False
+        return True
+
+def readExistingOutput():
+    existingcontent = []
+    for line in open( __OUTPUT__ ):
+        content = line.split("\t")
+        aline   = "\t".join( content[1:] )
+        existingcontent.append( aline )
+    try:
+        index = content[0]
+    except:
+        index = 1
+    return ( existingcontent, index )
+
+def indexGenerator( index ):
+    while True:
+        yield index
+        index = index + 1
+
+def getBindingMoadID( PDBID, ligand, MOADDict ):
+    for eachligand in MOADDict[PDBID]:
+        if ligandCompare( ligand, eachligand ):
+            return MOADDict[PDBID][eachligand]
+
+class oneLineInfo:
+    def __init__(self):
+        self.string = ""
+        self.index  = 0
+
+    def OneMoreChain( self, astring = "" ):
+        # to make formate like [A: and (1,2)]
+        if astring is "":
+            self.string = self.string + "]"
+            return
+        if self.string:
+            self.string = self.string + " or :" + astring
+        else:
+            self.string = self.string + "[:" + astring
+
+    def addLeft( self, leftstring ):
+        print leftstring
+        self.string = "\t".join( [ leftstring, self.string ] )
+
+    def addRight( self, rightstring ):
+        self.string = "\t".join( [ self.string, rightstring ] )
+
+    def setIndex( self, index ):
+        self.index = index
+
+    def indexAdd( self ):
+        self.index = indexGenerator()
+
+    def indexString( self ):
+        return str( self.index ).zfill(5)
+
+    def addIndexString( self ):
+        self.string = self.indexString() + "\t" + self.string
+
+    def writeToFile( self, fileObj ):
+        self.addIndexString()
+        fileObj.write( self.string + "\n" )
+
+
 def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsDict = None, NumberDict = None, PDBMemberNumberDict = None ):
     # Basically in the following format:
     # Output format: Index, BioUnitID, ligandChainID, [:proteinChainID and residueNumber]
     # Output2 format: Index, ligandName.ligandChainID,.. ( no info for ligand residue, so ignore that )
     # Example for output2: 00001 ATP.123.A,ALA.43.C,TYR.44.C
     # 7/30/2013 only keep one ligand for one PDB
-    out_obj = open( outfile, "w" )
-    index = 1
+    out_obj = open( outfile, "a" )
     ExistingPairs = []
     # 7/30/2013 Here is the structure to keep track only one case for each ligand, remove the duplication in biounit also
-    ligandtrack = dict()
+    onlyOneLigandEntry = ligandFilter()
+    # 9/17 read existing output and generate continuous index
+    existingContent, index = readExistingOutput()
+    indexG = indexGenerator( index )
     for eachBioUnit in ProBiS_dict.keys():
-        ligandlist  = ",".join(ProBiS_dict[eachBioUnit].keys())
         BioUnitID   = eachBioUnit
         PDBID       = BioUnitID.split('.')[0]
-        if not PDBID in ligandtrack.keys():
-            ligandtrack[PDBID] = []
-        try:
-            ligandList = ProBiS_dict[eachBioUnit].keys()
-            ligandList.sort()
-            print ligandList
-        except:
-            print "something wrong"
-            continue
-        for eachligand in ligandList:
-            Index = str(index).zfill(5)
-            ligandChainID = eachligand
-            allproteinChainInfo = ""
+        for eachligand in sorted(ProBiS_dict[eachBioUnit].keys()):
+            oneLine       = oneLineInfo()
             # The total number of binding site residue
             bindingSiteNumber = 0
             # 9/6 sort protein chain id also
-            proteinChainIDList = ProBiS_dict[eachBioUnit][eachligand].keys()
-            proteinChainIDList.sort()
-            for eachproteinChainID in proteinChainIDList:
+            for eachproteinChainID in sorted( ProBiS_dict[eachBioUnit][eachligand].keys() ):
                 ProBiS_dict[eachBioUnit][eachligand][eachproteinChainID].sort()
                 bindingSiteNumber = bindingSiteNumber + len(ProBiS_dict[eachBioUnit][eachligand][eachproteinChainID])
-                if allproteinChainInfo:
-                    allproteinChainInfo = allproteinChainInfo + " or :" + eachproteinChainID + " and (" + ",".join( map( str, ProBiS_dict[eachBioUnit][eachligand][eachproteinChainID] ) ) + ")"
-                else:
-                    allproteinChainInfo = allproteinChainInfo + "[:" + eachproteinChainID + " and (" + ",".join( map( str, ProBiS_dict[eachBioUnit][eachligand][eachproteinChainID] ) ) + ")"
-            allproteinChainInfo = allproteinChainInfo + "]"
-            ligandName  = ligandChainID.split('.')[0]
-            ligandChain = ligandChainID.split('.')[1]
+                chainInfo = eachproteinChainID + " and (" + ",".join( map( str, ProBiS_dict[eachBioUnit][eachligand][eachproteinChainID] ) ) + ")"
+                oneLine.OneMoreChain( chainInfo )
+            oneLine.OneMoreChain()
+            ligandName  = eachligand.split('.')[0]
+            ligandChain = eachligand.split('.')[1]
             # 7/30/2013 for only one ligand
-            if ligandName in ligandtrack[PDBID]:
+            if onlyOneLigandEntry.checkLigand( PDBID, ligandName ):
                 continue
-            else:
-                ligandtrack[PDBID].append(ligandName)
-            try:
-                if validliganddict[PDBID.upper()][ligandName]:
-                    ligandChainID = processStrangeLigandName( ligandChainID )
-                    if BioChainsDict is None:
-                        # whether include binding PDB chains or not
-                        aline = "\t".join( [ Index, BioUnitID.lower(), ligandChainID, allproteinChainInfo ] ) + "\n"
-                        index = index + 1
-                    else:
-                        try:
-                            NumberingKey = "\t".join([PDBID.upper(), ligandName])
-                            numbering = NumberDict[NumberingKey]
-                            aline = "\t".join( [ Index, numbering, BioUnitID.lower(), ligandChainID, BioChainsDict[ BioUnitID.lower() ], allproteinChainInfo, str(bindingSiteNumber), PDBMemberNumberDict[PDBID.upper()] ] ) + "\n"
-                            index = index + 1
-                        except:
-                            print "cannot find chains for file: " + BioUnitID.lower()
-                            continue
-                    out_obj.write(aline)
-            except:
-                continue
+            if checkValid( PDBID, ligandName, validliganddict ):
+                ligandChainID = processStrangeLigandName( eachligand )
+                if BioChainsDict is None:
+                    # whether include binding PDB chains or not
+                    oneLine.addLeft("\t".join( [ BioUnitID.lower(), ligandChainID, allproteinChainInfo ] ) )
+                else:
+                    #try:
+                    numbering = getBindingMoadID( PDBID.upper(), ligandName, NumberDict )
+                    oneLine.addLeft("\t".join( [ numbering, BioUnitID.lower(), ligandChainID, BioChainsDict[BioUnitID.lower()] ]) )
+                    oneLine.addRight("\t".join( [ str(bindingSiteNumber), PDBMemberNumberDict[PDBID.upper()] ])  )
+                    #except:
+                    #    print "cannot find chains for file: " + BioUnitID.lower() + "\t" + NumberingKey
+                    #    continue
+                if oneLine.string not in existingContent:
+                    oneLine.setIndex( indexG.next() )
+                    oneLine.writeToFile( out_obj )
             # add one index for each binding site/ligand
     out_obj.close()
 
@@ -173,7 +263,11 @@ def aqeelNumberingParse( infile ):
         protein   = content[1].strip()
         ligand    = content[2].strip()
         proteinLigand = "\t".join( [protein, ligand] )
-        numberdict[ proteinLigand ] = numbering
+        if protein in numberdict:
+            numberdict[ protein ][ ligand ] = numbering
+        else:
+            numberdict[ protein ] = dict()
+            numberdict[ protein ][ ligand ] = numbering
     return numberdict
 
 def assignEachPDBwithNumberofMembers( PDBLeader_dict ):
@@ -213,7 +307,6 @@ def main():
     pdb_with_numberofmembers = assignEachPDBwithNumberofMembers( everyparser.ALL_leader )
 
     infiledir = "/users/ajing/ligandNet/tmp_test/final.txt"
-    outfiledir1 = "/users/ajing/ligandNet/ProbisInput_test.txt"
     outfiledir2 = "/users/ajing/ligandNet/Data/IndexwithLigandInfo.txt"
     ## file for protein id : protein chains
     proteinChainFile = "/users/ajing/ligandNet/Data/proteinChain.txt"
@@ -222,7 +315,7 @@ def main():
     aqeelfile = "/users/ahmedaq/work/Probis/LigandID_PDB_LigName_tab.nosql"
     aqeeldict = aqeelNumberingParse( aqeelfile )
     probisdict = convertProBiS( infiledir )
-    makeProBiSInput( probisdict, everyparser.ALL, outfiledir1, outfiledir2, proteinchaindict, aqeeldict, pdb_with_numberofmembers)
+    makeProBiSInput( probisdict, everyparser.ALL, __OUTPUT__, outfiledir2, proteinchaindict, aqeeldict, pdb_with_numberofmembers)
 
 def main2():
     infiledir = "/users/ajing/ligandNet/tmp_test/final.txt"
@@ -230,6 +323,6 @@ def main2():
     existingStatistics( probisdict )
 
 if __name__ == "__main__":
-    #main()
-    main2()
+    main()
+    #main2()
 
