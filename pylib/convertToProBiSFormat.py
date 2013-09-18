@@ -146,11 +146,11 @@ class ligandFilter:
 def readExistingOutput():
     existingcontent = []
     for line in open( __OUTPUT__ ):
-        content = line.split("\t")
+        content = line.strip().split("\t")
         aline   = "\t".join( content[1:] )
         existingcontent.append( aline )
     try:
-        index = content[0]
+        index = int(content[0])
     except:
         index = 1
     return ( existingcontent, index )
@@ -181,7 +181,6 @@ class oneLineInfo:
             self.string = self.string + "[:" + astring
 
     def addLeft( self, leftstring ):
-        print leftstring
         self.string = "\t".join( [ leftstring, self.string ] )
 
     def addRight( self, rightstring ):
@@ -234,22 +233,18 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
             ligandName  = eachligand.split('.')[0]
             ligandChain = eachligand.split('.')[1]
             # 7/30/2013 for only one ligand
-            if onlyOneLigandEntry.checkLigand( PDBID, ligandName ):
-                continue
+            #if onlyOneLigandEntry.checkLigand( PDBID, ligandName ):
+            #    continue
             if checkValid( PDBID, ligandName, validliganddict ):
                 ligandChainID = processStrangeLigandName( eachligand )
                 if BioChainsDict is None:
                     # whether include binding PDB chains or not
                     oneLine.addLeft("\t".join( [ BioUnitID.lower(), ligandChainID, allproteinChainInfo ] ) )
                 else:
-                    #try:
                     numbering = getBindingMoadID( PDBID.upper(), ligandName, NumberDict )
                     oneLine.addLeft("\t".join( [ numbering, BioUnitID.lower(), ligandChainID, BioChainsDict[BioUnitID.lower()] ]) )
                     oneLine.addRight("\t".join( [ str(bindingSiteNumber), PDBMemberNumberDict[PDBID.upper()] ])  )
-                    #except:
-                    #    print "cannot find chains for file: " + BioUnitID.lower() + "\t" + NumberingKey
-                    #    continue
-                if oneLine.string not in existingContent:
+                if not oneLine.string in existingContent:
                     oneLine.setIndex( indexG.next() )
                     oneLine.writeToFile( out_obj )
             # add one index for each binding site/ligand
