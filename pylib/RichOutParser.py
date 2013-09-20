@@ -27,6 +27,8 @@ colname = [
 class RichOutParser:
     def __init__( self, Richdir, validdict = None):
         self.infile = Richdir
+        self.exceptionDIR = "/users/ajing/ligandNet/Data/joinException.txt"
+        self.exceptlist = self.exceptionList()
         self.obj    = self.parseRichOutput( self.infile )
         if validdict:
             self.obj    = self.joinMultipartBindingSite( self.obj, validdict )
@@ -57,6 +59,7 @@ class RichOutParser:
                 output_dict[ content_dict["BIOUNIT"] ][ content_dict["ligandName"] + "." + content_dict["ligandChainID"] ][ content_dict["proteinChainID"] ]  = []
             if not int(content_dict["residueNumber"]) in output_dict[ content_dict["BIOUNIT"] ][ content_dict["ligandName"] + "." + content_dict["ligandChainID"] ][ content_dict["proteinChainID"] ]:
                 output_dict[ content_dict["BIOUNIT"] ][ content_dict["ligandName"] + "." + content_dict["ligandChainID"] ][ content_dict["proteinChainID"] ].append( int(content_dict["residueNumber"]) )
+                output_dict[ content_dict["BIOUNIT"] ][ content_dict["ligandName"] + "." + content_dict["ligandChainID"] ][ content_dict["proteinChainID"] ].sort()
         return output_dict
 
     def getAllBiounitForPDB( self, PDBID, ProbisDict ):
@@ -90,6 +93,18 @@ class RichOutParser:
                 tmpdict[ each ] = sorted( liganddict[ each ] )
         return tmpdict
 
+    def exceptionList( self ):
+        exceptlist = []
+        for eachline in open(self.exceptionDIR):
+            biounit, ligandchain = eachline.strip().split("\t")
+        exceptlist.append( [biounit, ligandchain] )
+        return exceptlist
+
+    def exceptionListforJoin( self, biounit, ligandandchain ):
+        if [ biounit, ligandandchain ] in self.exceptlist:
+            return True
+        else:
+            return False
 
     def joinforOneBiounit( self, ligands, biounit, ProbisDict):
         # return new
@@ -98,6 +113,11 @@ class RichOutParser:
         ligands_cp = ligands[:]
         # get join list for ligands
         for ligandandChain in ProbisDict[biounit].keys():
+            #if biounit == "2ARX.BIO1":
+            #    print ligandandChain
+            #    print [biounit, ligandandChain]
+            if self.exceptionListforJoin( biounit, ligandandChain):
+                continue
             ligand, chain = ligandandChain.split(".")
             ligandlist = ligand.split()
             ligandsleft = self.listInlist( ligandlist, ligands )
@@ -139,15 +159,11 @@ class RichOutParser:
                 if len(ligands) > 1:
                     Biolist = self.getAllBiounitForPDB( eachPDB, ProbisDict )
                     for eachBiounit in Biolist:
-                        print "eachbiounit:", eachBiounit
+                        #print "eachbiounit:", eachBiounit
                         ProbisDict = self.joinforOneBiounit( ligands, eachBiounit, ProbisDict)
-        #BioUnitList = self.getAllBiounitForPDB( "3B80", ProbisDict )
+        #BioUnitList = self.getAllBiounitForPDB( "2ARX", ProbisDict )
         #for each in BioUnitList:
         #    print each
-        #    print ProbisDict[ each ]
-        #BioUnitList = self.getAllBiounitForPDB( "2ARX", ProbisDict #)
-        #for each in BioUnitList:
-      # #     print each
         #    print ProbisDict[ each ]
         return ProbisDict
 

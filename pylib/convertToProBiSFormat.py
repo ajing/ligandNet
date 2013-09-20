@@ -82,7 +82,7 @@ class ligandFilter:
 
     def checkLigand( self, PDBID, ligand ):
         if PDBID not in self.ligandtrack.keys():
-            self.ligandtrack[PDBID] = []
+            self.ligandtrack[PDBID] = [ligand]
             return False
         if ligand not in self.ligandtrack[ PDBID ]:
             self.ligandtrack[ PDBID ].append( ligand )
@@ -149,6 +149,11 @@ class oneLineInfo:
         fileObj.write( self.string + "\n" )
 
 
+def isheader( PDBID, PDBMemberNumberDict ):
+    if PDBMemberNumberDict[PDBID][-1] == "-":
+        return False
+    return True
+
 # Output format: Index, BioUnitID, ligandChainID, [:proteinChainID and residueNumber]
 # like "[:A and (12, 13, 14, 15)]"
 def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsDict = None, NumberDict = None, PDBMemberNumberDict = None ):
@@ -164,7 +169,7 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
     # 9/17 read existing output and generate continuous index
     existingContent, index = readExistingOutput()
     indexG = indexGenerator( index )
-    for eachBioUnit in ProBiS_dict.keys():
+    for eachBioUnit in sorted( ProBiS_dict.keys() ):
         BioUnitID   = eachBioUnit
         PDBID       = BioUnitID.split('.')[0]
         for eachligand in sorted(ProBiS_dict[eachBioUnit].keys()):
@@ -178,11 +183,10 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
                 chainInfo = eachproteinChainID + " and (" + ",".join( map( str, ProBiS_dict[eachBioUnit][eachligand][eachproteinChainID] ) ) + ")"
                 oneLine.OneMoreChain( chainInfo )
             oneLine.OneMoreChain()
-            ligandName  = eachligand.split('.')[0]
-            ligandChain = eachligand.split('.')[1]
+            ligandName, ligandChain = eachligand.split('.')
             # 7/30/2013 for only one ligand
-            #if onlyOneLigandEntry.checkLigand( PDBID, ligandName ):
-            #    continue
+            if isheader(PDBID, PDBMemberNumberDict) and onlyOneLigandEntry.checkLigand( PDBID, ligandName ):
+                continue
             if checkValid( PDBID, ligandName, validliganddict ):
                 ligandChainID = processStrangeLigandName( eachligand )
                 if BioChainsDict is None:
