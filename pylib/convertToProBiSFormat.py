@@ -9,6 +9,7 @@
 ## For every_parser
 import sys
 import os
+from RichOutParser import RichOutParser
 __previous_pylib__ = "/users/ajing/pylib"
 #__INPUTDIR__ = "/users/ajing/ligandNet/2012_biounits/"
 __INPUTDIR__ = "/users/ajing/ligandNet/BindingMoad2011_test/BindingMoad2011/"
@@ -16,67 +17,12 @@ __OUTPUT__ = "/users/ajing/ligandNet/ProbisInput_test.txt"
 sys.path.append(__previous_pylib__)
 from every_parser import every_parser
 
-# The original colname of file
-colname = [
-    "BIOUNIT",
-    "BIOUNITFILE",
-    "ligandName",
-    "ligandChainID",
-    "ligandChainIDNEW",
-    "proteinChainID",
-    "residueName",
-    "residueNumber",
-    "insertion",
-    "AtomName",
-    "AtomNumber",
-    "Distance",
-    "Metal"
-]
-
-# Output format: Index, BioUnitID, ligandChainID, [:proteinChainID and residueNumber]
-# like "[:A and (12, 13, 14, 15)]"
-
-def convertProBiS( infile ):
-    output_dict = dict()
-    for line in open(infile):
-        content = line.strip().split(",")
-        content_dict = dict()
-        tot_num = len( content )
-        if tot_num != len( colname ):
-            raise "Some problem with this line: " + content
-        for idx in range( tot_num ):
-            content_dict[ colname[idx] ] = content[ idx ]
-        if content_dict[ "proteinChainID" ] == "z":
-            continue
-        try:
-            output_dict[ content_dict["BIOUNIT"] ]
-        except:
-            output_dict[ content_dict["BIOUNIT"] ] = dict()
-        try:
-            output_dict[ content_dict["BIOUNIT"] ][ content_dict["ligandName"] + "." + content_dict["ligandChainID"] ]
-        except:
-            output_dict[ content_dict["BIOUNIT"] ][ content_dict["ligandName"] + "." + content_dict["ligandChainID"] ] = dict()
-        try:
-            output_dict[ content_dict["BIOUNIT"] ][ content_dict["ligandName"] + "." + content_dict["ligandChainID"] ][ content_dict["proteinChainID"] ]
-        except:
-            output_dict[ content_dict["BIOUNIT"] ][ content_dict["ligandName"] + "." + content_dict["ligandChainID"] ][ content_dict["proteinChainID"] ]  = []
-        if not int(content_dict["residueNumber"]) in output_dict[ content_dict["BIOUNIT"] ][ content_dict["ligandName"] + "." + content_dict["ligandChainID"] ][ content_dict["proteinChainID"] ]:
-            output_dict[ content_dict["BIOUNIT"] ][ content_dict["ligandName"] + "." + content_dict["ligandChainID"] ][ content_dict["proteinChainID"] ].append( int(content_dict["residueNumber"]) )
-    return output_dict
-
-def removeEmpty( alist ):
-    new_list = []
-    for each in alist:
-        if each:
-            new_list.append( each )
-    return new_list
-
 def processStrangeLigandName( completeLigandName ):
     # Here completeLigandName means like BGC.D or GLC BGC.B_C
     ligandName = completeLigandName.split(".")[0]
     ChainID    = completeLigandName.split(".")[1]
     ligandName.strip()
-    ligandNamelist = removeEmpty( ligandName.split(" ") )
+    ligandNamelist = ligandName.split()
     ChainIDlist    = ChainID.split("_")
     ligandNamelen  = len(ligandNamelist)
     if ligandNamelen == 1:
@@ -116,8 +62,8 @@ def contains(small, big):
     return False
 
 def ligandCompare( ligand1, ligand2 ):
-    list1 = sorted( removeEmpty( ligand1.split(" ") ) )
-    list2 = sorted( removeEmpty( ligand2.split(" ") ) )
+    list1 = sorted( ligand1.split() )
+    list2 = sorted( ligand2.split() )
     if contains( list1, list2 ) or contains( list2, list1 ):
         return True
     return False
@@ -203,6 +149,8 @@ class oneLineInfo:
         fileObj.write( self.string + "\n" )
 
 
+# Output format: Index, BioUnitID, ligandChainID, [:proteinChainID and residueNumber]
+# like "[:A and (12, 13, 14, 15)]"
 def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsDict = None, NumberDict = None, PDBMemberNumberDict = None ):
     # Basically in the following format:
     # Output format: Index, BioUnitID, ligandChainID, [:proteinChainID and residueNumber]
@@ -308,13 +256,14 @@ def main():
     proteinchaindict = returnChainsForPDBID( proteinChainFile )
     ## file for aqeel's numbering for protein ligand pair
     aqeelfile = "/users/ahmedaq/work/Probis/LigandID_PDB_LigName_tab.nosql"
-    aqeeldict = aqeelNumberingParse( aqeelfile )
-    probisdict = convertProBiS( infiledir )
+    aqeeldict   = aqeelNumberingParse( aqeelfile )
+    richout     = RichOutParser( infiledir, everyparser.ALL )
+    probisdict  = richout.obj
     makeProBiSInput( probisdict, everyparser.ALL, __OUTPUT__, outfiledir2, proteinchaindict, aqeeldict, pdb_with_numberofmembers)
 
 def main2():
     infiledir = "/users/ajing/ligandNet/tmp_test/final.txt"
-    probisdict = convertProBiS( infiledir )
+    probisdict = parseRichOutput( infiledir )
     existingStatistics( probisdict )
 
 if __name__ == "__main__":
