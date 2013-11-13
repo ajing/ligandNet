@@ -10,10 +10,10 @@
 import sys
 import os
 from RichOutParser import RichOutParser
+from Modular import PROBIS_DIR, BIOUNIT_DIR, RICHOUT_DIR, PROTEIN_DIR, MOADINDEX, OBSOLETE
 __previous_pylib__ = "/users/ajing/pylib"
-#__INPUTDIR__ = "/users/ajing/ligandNet/2012_biounits/"
-__INPUTDIR__ = "/users/ajing/ligandNet/BindingMoad2011_test/BindingMoad2011/"
-__OUTPUT__ = "/users/ajing/ligandNet/ProbisInput_test.txt"
+__INPUTDIR__ = BIOUNIT_DIR
+__OUTPUT__ = PROBIS_DIR
 sys.path.append(__previous_pylib__)
 from every_parser import every_parser
 
@@ -89,9 +89,9 @@ class ligandFilter:
             return False
         return True
 
-def readExistingOutput():
+def readExistingOutput( infile ):
     existingcontent = []
-    for line in open( __OUTPUT__ ):
+    for line in open( infile ):
         content = line.strip().split("\t")
         aline   = "\t".join( content[1:] )
         existingcontent.append( aline )
@@ -167,11 +167,14 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
     # 7/30/2013 Here is the structure to keep track only one case for each ligand, remove the duplication in biounit also
     onlyOneLigandEntry = ligandFilter()
     # 9/17 read existing output and generate continuous index
-    existingContent, index = readExistingOutput()
+    existingContent, index = readExistingOutput(outfile)
     indexG = indexGenerator( index )
     for eachBioUnit in sorted( ProBiS_dict.keys() ):
         BioUnitID   = eachBioUnit
         PDBID       = BioUnitID.split('.')[0]
+        # 11/12/2013 for ignoring obsolete protein
+        if PDBID in OBSOLETE:
+            continue
         for eachligand in sorted(ProBiS_dict[eachBioUnit].keys()):
             oneLine       = oneLineInfo()
             # The total number of binding site residue
@@ -194,6 +197,7 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
                     oneLine.addLeft("\t".join( [ BioUnitID.lower(), ligandChainID, allproteinChainInfo ] ) )
                 else:
                     numbering = getBindingMoadID( PDBID.upper(), ligandName, NumberDict )
+                    #print PDBID, ligandName, numbering
                     oneLine.addLeft("\t".join( [ numbering, BioUnitID.lower(), ligandChainID, BioChainsDict[BioUnitID.lower()] ]) )
                     oneLine.addRight("\t".join( [ str(bindingSiteNumber), PDBMemberNumberDict[PDBID.upper()] ])  )
                 if not oneLine.string in existingContent:
@@ -203,18 +207,19 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
     out_obj.close()
 
 def aqeelNumberingParse( infile ):
+    # extend numbering to other fields: like
     numberdict = dict()
     for line in open( infile ):
         content = line.strip().split("\t")
         numbering = content[0].strip()
         protein   = content[1].strip()
         ligand    = content[2].strip()
-        proteinLigand = "\t".join( [protein, ligand] )
         if protein in numberdict:
             numberdict[ protein ][ ligand ] = numbering
         else:
             numberdict[ protein ] = dict()
             numberdict[ protein ][ ligand ] = numbering
+    #print numberdict
     return numberdict
 
 def assignEachPDBwithNumberofMembers( PDBLeader_dict ):
@@ -252,25 +257,25 @@ def main():
     everyparser = every_parser()
     everyparser.find_PDBID_ValidLigand()
     pdb_with_numberofmembers = assignEachPDBwithNumberofMembers( everyparser.ALL_leader )
-
-    infiledir = "/users/ajing/ligandNet/tmp_test/final.txt"
+    infiledir = RICHOUT_DIR
     outfiledir2 = "/users/ajing/ligandNet/Data/IndexwithLigandInfo.txt"
     ## file for protein id : protein chains
-    proteinChainFile = "/users/ajing/ligandNet/Data/proteinChain.txt"
+    proteinChainFile = PROTEIN_DIR
     proteinchaindict = returnChainsForPDBID( proteinChainFile )
     ## file for aqeel's numbering for protein ligand pair
-    aqeelfile = "/users/ahmedaq/work/Probis/LigandID_PDB_LigName_tab.nosql"
+    aqeelfile   = MOADINDEX
     aqeeldict   = aqeelNumberingParse( aqeelfile )
     richout     = RichOutParser( infiledir, everyparser.ALL )
     probisdict  = richout.obj
     makeProBiSInput( probisdict, everyparser.ALL, __OUTPUT__, outfiledir2, proteinchaindict, aqeeldict, pdb_with_numberofmembers)
 
-def main2():
-    infiledir = "/users/ajing/ligandNet/tmp_test/final.txt"
-    probisdict = parseRichOutput( infiledir )
-    existingStatistics( probisdict )
+def test():
+    # test for functions
+    aqeelfile   = MOADINDEX
+    aqeeldict   = aqeelNumberingParse( aqeelfile )
+    print getBindingMoadID("1FPQ", "SAM", aqeeldict)
+    print getBindingMoadID("1CZH", "SO4", aqeeldict)
 
 if __name__ == "__main__":
+    #test()
     main()
-    #main2()
-

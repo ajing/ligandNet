@@ -78,13 +78,14 @@ def returnProteinChainID( structure, filename, ligandlist ):
                     if residueName.startswith("H_"):
                         residueName = residueName[2:]
                     if not residueNameinLigandlist( residueName, ligandlist ):
-                        exception_obj.write( "\t".join( [filename, residueName, chain.id] ) + "\n" )
+                        exception_obj.write( "Cannot Find Ligand in MOAD:" + "\t".join( [filename, residueName, chain.id] ) + "\n" )
     return proteinChains
 
 def returnProteinChainIDSimple( biounitdir ):
     # this function only take SEQRES for all chain ids
     # For simplicity here we only keep chain id with more than 13 residues.
     exception_obj = open( __EXCEPTION_FILE__, "a")
+    exception_obj.write("Cannot Find Protein Chain For:" + biounitdir)
     chainIDList = []
     proteinChains = []
     for line in open( biounitdir ):

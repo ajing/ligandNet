@@ -8,7 +8,7 @@ __previous_pylib__ = "/users/ajing/pylib"
 sys.path.append(__previous_pylib__)
 from every_parser import every_parser
 # The original colname of file
-colname = [
+_COLNAME = [
     "BIOUNIT",
     "BIOUNITFILE",
     "ligandName",
@@ -16,7 +16,7 @@ colname = [
     "ligandChainIDNEW",
     "proteinChainID",
     "residueName",
-    "residueNumber",
+    "objresidueNumber",
     "insertion",
     "AtomName",
     "AtomNumber",
@@ -39,10 +39,10 @@ class RichOutParser:
             content = line.strip().split(",")
             content_dict = dict()
             tot_num = len( content )
-            if tot_num != len( colname ):
+            if tot_num != len( _COLNAME ):
                 raise "Some problem with this line: " + content
             for idx in range( tot_num ):
-                content_dict[ colname[idx] ] = content[ idx ]
+                content_dict[ _COLNAME[idx] ] = content[ idx ]
             if content_dict[ "proteinChainID" ] == "z":
                 continue
             try:
