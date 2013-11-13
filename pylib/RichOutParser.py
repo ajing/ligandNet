@@ -6,7 +6,6 @@
 import sys
 __previous_pylib__ = "/users/ajing/pylib"
 sys.path.append(__previous_pylib__)
-from every_parser import every_parser
 # The original colname of file
 _COLNAME = [
     "BIOUNIT",
@@ -16,7 +15,7 @@ _COLNAME = [
     "ligandChainIDNEW",
     "proteinChainID",
     "residueName",
-    "objresidueNumber",
+    "residueNumber",
     "insertion",
     "AtomName",
     "AtomNumber",
@@ -168,6 +167,7 @@ class RichOutParser:
         return ProbisDict
 
 if __name__ == "__main__":
+    from every_parser import every_parser
     everyparser = every_parser()
     everyparser.find_PDBID_ValidLigand()
     infiledir = "/users/ajing/ligandNet/tmp_test/final.txt"

@@ -77,8 +77,8 @@ def ligandNotInFile():
                     PairCannotFind.append([PDB, ligand])
     print "total number of PDB ligand pairs in every.csv: ", TotalNumberPairs
     print "number of PDB ligand pair cannot find in final result: ", len(PairCannotFind)
+    print PairCannotFind
 
 if __name__ == "__main__":
-    numberOfAminoAcidLigand()
-    #ligandNotInFile()
-
+    #numberOfAminoAcidLigand()
+    ligandNotInFile()

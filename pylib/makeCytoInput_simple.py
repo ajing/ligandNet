@@ -3,7 +3,8 @@
 """
 from ProbisInputReader import Probis
 from makeCytoInput import LineWithColumn, LigType, LigSize, PROTEIN_CLASS
-__CYTOSCAPE_INPUT__ = "../Data/CytoscapeInput.txt"
+__CYTOSCAPE_INPUT__ = "CytoscapeInput.txt"
+__EVERYCSV__        = "every.csv"
 
 ## For every_parser
 import sys
@@ -16,7 +17,7 @@ def RefineLigand(ligandname):
 
 def MakeCytoInput():
     colname = ["BS_ID", "BS_Size", "PDB", "EC_Num", "Class", "Lig_Type", "Lig_Name", "Lig_size"]
-    everyparser = every_parser()
+    everyparser = every_parser(__EVERYCSV__)
     everyparser.find_PDBID_ValidLigand()
     probis_dict  = Probis().probisdict
     cyto_obj     = open(__CYTOSCAPE_INPUT__, "w")
