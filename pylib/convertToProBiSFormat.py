@@ -1,5 +1,6 @@
 '''
     This file is for convert original file of Rich's amino_acid_counter.pl to what ProBiS like
+    Please call all files in corresponding data directory
     author: ajing
     Data  : 7/15/2013
     ChangeLog:
