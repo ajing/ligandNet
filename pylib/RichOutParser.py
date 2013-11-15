@@ -126,6 +126,9 @@ class RichOutParser:
         if len( joinlist ) < 2 or not joinlist:
             return ProbisDict
         # reorder join list, so the same order as bindingMOAD
+        if biounit.split(".")[0] == "1XR9":
+            print biounit
+            print joinlist
         ligands      = ligands_cp
         joinlist_tmp = []
         for each in ligands:
@@ -134,6 +137,8 @@ class RichOutParser:
                 joinlist_tmp.append( ligand )
                 joinlist.remove( ligand )
         joinlist = joinlist_tmp
+        if biounit.split(".")[0] == "1XR9":
+            print joinlist
         # join binding sites for joinlist
         # build key
         ligandlist = []
@@ -158,8 +163,11 @@ class RichOutParser:
                 if len(ligands) > 1:
                     Biolist = self.getAllBiounitForPDB( eachPDB, ProbisDict )
                     for eachBiounit in Biolist:
-                        #print "eachbiounit:", eachBiounit
                         ProbisDict = self.joinforOneBiounit( ligands, eachBiounit, ProbisDict)
+                        if eachPDB == "1XR9":
+                            print "eachbiounit:", eachBiounit
+                            print ligands
+                            print ProbisDict[eachBiounit]
         #BioUnitList = self.getAllBiounitForPDB( "2ARX", ProbisDict )
         #for each in BioUnitList:
         #    print each

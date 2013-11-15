@@ -54,6 +54,8 @@ def returnChainsForPDBID( BioUnitChainsDIR ):
     return BioUnitChainDict
 
 def contains(small, big):
+    if len(big) > 3:
+        return contains_simple(small, big)
     for i in xrange(len(big)-len(small)+1):
         for j in xrange(len(small)):
             if big[i+j] != small[j]:
@@ -61,6 +63,13 @@ def contains(small, big):
         else:
             return i, i+len(small)
     return False
+
+def contains_simple(small, big):
+    for each in small:
+        if not each in big:
+            return False
+    print small, big
+    return True
 
 def ligandCompare( ligand1, ligand2 ):
     list1 = sorted( ligand1.split() )
@@ -220,7 +229,6 @@ def aqeelNumberingParse( infile ):
         else:
             numberdict[ protein ] = dict()
             numberdict[ protein ][ ligand ] = numbering
-    #print numberdict
     return numberdict
 
 def assignEachPDBwithNumberofMembers( PDBLeader_dict ):
@@ -242,16 +250,6 @@ def assignEachPDBwithNumberofMembers( PDBLeader_dict ):
         else:
             PDBMember_dict[each] = leader + "\t" + "-"
     return PDBMember_dict
-
-def existingStatistics( probisdict ):
-    biounits = probisdict.keys()
-    print "Number of biounit files: " + str(len(biounits))
-    PDBs     = set( [ each.split(".")[0] for each in biounits ])
-    print "Number of PDBs: " + str(len(PDBs))
-    filelist = os.listdir( __INPUTDIR__ )
-    print "Total number of biounit files: " + str(len(filelist))
-    AllPDBs     = set( [ each.split(".")[0] for each in filelist])
-    print "Total number of PDBs: " + str(len(AllPDBs))
 
 def main():
     # for everyparser of valid ligand
@@ -276,6 +274,10 @@ def test():
     aqeeldict   = aqeelNumberingParse( aqeelfile )
     print getBindingMoadID("1FPQ", "SAM", aqeeldict)
     print getBindingMoadID("1CZH", "SO4", aqeeldict)
+    everyparser = every_parser()
+    everyparser.find_PDBID_ValidLigand()
+    ligands = "ILE LEU GLY PRO SER VAL TYR"
+    print checkValid("1XR9", ligands, everyparser.ALL)
 
 if __name__ == "__main__":
     #test()
