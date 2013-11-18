@@ -19,6 +19,7 @@ class Probis:
             content = line.strip().split("\t")
             total_len = len(content)
             if not total_len == len( self.COLNAME):
+                print content
                 raise TypeError("file corrupted as different colnames")
             for each in range( total_len ):
                 ProbisDict[ self.COLNAME[each] ].append( content[each] )

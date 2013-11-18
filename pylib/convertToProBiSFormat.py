@@ -17,6 +17,7 @@ __INPUTDIR__ = BIOUNIT_DIR
 __OUTPUT__ = PROBIS_DIR
 sys.path.append(__previous_pylib__)
 from every_parser import every_parser
+from ligandNameChanges import *
 
 def processStrangeLigandName( completeLigandName ):
     # Here completeLigandName means like BGC.D or GLC BGC.B_C
@@ -68,7 +69,6 @@ def contains_simple(small, big):
     for each in small:
         if not each in big:
             return False
-    print small, big
     return True
 
 def ligandCompare( ligand1, ligand2 ):
@@ -82,6 +82,9 @@ def checkValid( PDBID, ligand, validdict ):
     ligandlist = validdict[ PDBID.upper() ]
     for each in ligandlist.keys():
         if ligandCompare( ligand, each ):
+            return ligandlist[ each ]
+        newligname = GetNewName(PDBID, each)
+        if ligandCompare( ligand, newligname ):
             return ligandlist[ each ]
     return False
 
@@ -119,6 +122,9 @@ def indexGenerator( index ):
 def getBindingMoadID( PDBID, ligand, MOADDict ):
     for eachligand in MOADDict[PDBID]:
         if ligandCompare( ligand, eachligand ):
+            return MOADDict[PDBID][eachligand]
+        newligname = GetNewName(PDBID, eachligand)
+        if ligandCompare( ligand, newligname ):
             return MOADDict[PDBID][eachligand]
 
 class oneLineInfo:

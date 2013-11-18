@@ -71,19 +71,79 @@ def ligandNotInFile(probisdict):
                     if ligandName in ligand or ligand in ligandName:
                         flag = 0
                         break
+                # possible ligands
+                pos_ligands = [ probisdict["LIGANDID"][x].split(".")[0] for x in indexlist]
+                pos_ligands = list(set(pos_ligands))
+                if not pos_ligands:
+                    pos_ligands = ["not found"]
                 if flag:
-                    PairCannotFind.append([PDB, ligand])
+                    PairCannotFind.append([PDB, ligand] + [","] + pos_ligands)
     print "total number of PDB ligand pairs in every.csv: ", TotalNumberPairs
     print "number of PDB ligand pair cannot find in final result: ", len(PairCannotFind)
+    LearningChanges(PairCannotFind)
+    pairs_after_filter = PairCannotFindFilter(PairCannotFind)
+    print "\n".join([" ".join(each) for each in pairs_after_filter])
+
+def LearningChanges(paircannotfind):
+    translate = dict()
+    for each in paircannotfind:
+        if len(each) == 4:
+            ligand = each[1]
+            if not each[3] == "not found":
+                ch_ligand = each[3]
+                translate[ligand] = ch_ligand
+    for each in paircannotfind:
+        if each[3] == "not found":
+            ligand = each[1]
+            if ligand in translate:
+                newligand = translate[ligand]
+                each[3]   = newligand
+
+def NumberofCannotFind(paircannotfindlist):
+    count = 0
+    for each in paircannotfindlist:
+        if each[-1] == "not found":
+            count += 1
+    print count
+
+def ReLearningCannotFindList(infile):
+    pairscannotfind = []
+    for line in open(infile):
+        before, pos_ligands = line.strip().split(",")
+        before = before.strip()
+        pos_ligands = pos_ligands.strip()
+        beforesplit = before.split()
+        PDB = beforesplit[0]
+        ligands = beforesplit[1:]
+        pairscannotfind.append([PDB, " ".join(ligands)] + [","] + [pos_ligands])
+    NumberofCannotFind(pairscannotfind)
+    LearningChanges(pairscannotfind)
+    NumberofCannotFind(pairscannotfind)
+    print "\n".join([" ".join(each) for each in pairscannotfind])
+
+def ExistingPairParser():
+    infile = "tmp"
+    pair_list = []
+    for line in open(infile):
+        PDB, ligand = line.strip().split()
+        PDB.strip()
+        ligand.strip()
+        pair_list.append([PDB, ligand])
+    return pair_list
 
 def PairCannotFindFilter(paircannotfind):
     newlist = []
+    existpairs = ExistingPairParser()
+    print existpairs
+    print len(existpairs)
     for each in paircannotfind:
         ligand = each[1]
-        if len(ligand.split()) > 1:
+        if each in existpairs:
             continue
-        if len(ligand) > 2 and ligand[2] == "P" and ligand[0] == "A":
-            continue
+        #if len(ligand.split()) > 1:
+        #    continue
+        #if len(ligand) > 2 and ligand[2] == "P" and ligand[0] == "A":
+        #    continue
         newlist.append(each)
     return newlist
 
@@ -134,7 +194,7 @@ def ligandNotInFileRichOut(richdict):
                     PairCannotFind.append([PDB, ligand])
     print "number of PDB ligand pair cannot find in final result: ", len(PairCannotFind)
     pairs_after_filter = PairCannotFindFilter(PairCannotFind)
-    print ExtendLigandNameChanges(pairs_after_filter)
+    print "\n".join([" ".join(each) for each in pairs_after_filter])
 
 def RichOutStatistics( richoutdict ):
     import os
@@ -163,8 +223,10 @@ def ProbisInputStat():
 
 if __name__ == "__main__":
     #numberOfAminoAcidLigand()
-    richdict = RichOutParser("final.txt")
-    richdict = richdict.obj
-    RichOutStatistics( richdict )
+    #richdict = RichOutParser("final.txt")
+    #richdict = richdict.obj
+    #RichOutStatistics( richdict )
     # probis input stat
     #ProbisInputStat()
+    # Help to increase the speed of filtering pair cannot find file
+    ReLearningCannotFindList("outfile4")
