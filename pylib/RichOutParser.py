@@ -164,14 +164,6 @@ class RichOutParser:
                     Biolist = self.getAllBiounitForPDB( eachPDB, ProbisDict )
                     for eachBiounit in Biolist:
                         ProbisDict = self.joinforOneBiounit( ligands, eachBiounit, ProbisDict)
-                        if eachPDB == "1XR9":
-                            print "eachbiounit:", eachBiounit
-                            print ligands
-                            print ProbisDict[eachBiounit]
-        #BioUnitList = self.getAllBiounitForPDB( "2ARX", ProbisDict )
-        #for each in BioUnitList:
-        #    print each
-        #    print ProbisDict[ each ]
         return ProbisDict
 
 if __name__ == "__main__":
