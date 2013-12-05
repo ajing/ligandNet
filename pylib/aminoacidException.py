@@ -14,9 +14,6 @@ from every_parser import every_parser
 
 __AMINO_ACID__ = [ "ALA", "CYS", "ASP", "GLU", "PHE", "GLY", "HIS", "ILE", "LYS", "LEU", "MET", "ASN", "PRO", "GLN", "ARG", "SER", "THR", "VAL", "TRP", "TYR"]
 
-# the pdb we cannot find any processed
-__pdbcannotfind__  = ""
-
 from RichOutParser import RichOutParser
 from Modular import BIOUNIT_DIR
 
@@ -120,6 +117,16 @@ def ReLearningCannotFindList(infile):
     LearningChanges(pairscannotfind)
     NumberofCannotFind(pairscannotfind)
     print "\n".join([" ".join(each) for each in pairscannotfind])
+
+def AddQuestionMark(infile):
+    for line in open(infile):
+        cont, pos = line.strip().split(",")
+        content = cont.split()
+        PDB = content[0]
+        ligand = content[1:]
+        if pos[-1] != "?" and len(ligand) > 1 and not pos[-5:] == "found":
+            pos = pos + "?"
+        print ",".join([cont, pos])
 
 def ExistingPairParser():
     infile = "tmp"
@@ -229,4 +236,6 @@ if __name__ == "__main__":
     # probis input stat
     #ProbisInputStat()
     # Help to increase the speed of filtering pair cannot find file
-    ReLearningCannotFindList("outfile4")
+    #ReLearningCannotFindList("outfile4")
+    #SimpleFilter("outfile6")
+    AddQuestionMark("outfile6")
