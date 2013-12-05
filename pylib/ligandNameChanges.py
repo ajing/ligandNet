@@ -1,4 +1,7 @@
 '''
+    #####################################################################
+    ## This file is obsolete as Rich correct ligand names in every.csv ##
+    #####################################################################
     Process ligand name changes in BindingMOAD
 '''
 

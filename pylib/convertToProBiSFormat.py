@@ -17,7 +17,6 @@ __INPUTDIR__ = BIOUNIT_DIR
 __OUTPUT__ = PROBIS_DIR
 sys.path.append(__previous_pylib__)
 from every_parser import every_parser
-from ligandNameChanges import *
 
 def processStrangeLigandName( completeLigandName ):
     # Here completeLigandName means like BGC.D or GLC BGC.B_C
@@ -83,9 +82,6 @@ def checkValid( PDBID, ligand, validdict ):
     for each in ligandlist.keys():
         if ligandCompare( ligand, each ):
             return ligandlist[ each ]
-        newligname = GetNewName(PDBID, each)
-        if ligandCompare( ligand, newligname ):
-            return ligandlist[ each ]
     return False
 
 class ligandFilter:
@@ -122,9 +118,6 @@ def indexGenerator( index ):
 def getBindingMoadID( PDBID, ligand, MOADDict ):
     for eachligand in MOADDict[PDBID]:
         if ligandCompare( ligand, eachligand ):
-            return MOADDict[PDBID][eachligand]
-        newligname = GetNewName(PDBID, eachligand)
-        if ligandCompare( ligand, newligname ):
             return MOADDict[PDBID][eachligand]
 
 class oneLineInfo:
@@ -215,7 +208,7 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
                     numbering = getBindingMoadID( PDBID.upper(), ligandName, NumberDict )
                     #print PDBID, ligandName, numbering
                     oneLine.addLeft("\t".join( [ numbering, BioUnitID.lower(), ligandChainID, BioChainsDict[BioUnitID.lower()] ]) )
-                    oneLine.addRight("\t".join( [ str(bindingSiteNumber), PDBMemberNumberDict[PDBID.upper()] ])  )
+                    oneLine.addRight("\t".join( [ str(bindingSiteNumber), PDBMemberNumberDict[PDBID.upper()], "".join(ProBiS_dict[eachBioUnit][eachligand].keys()) ])  )
                 if not oneLine.string in existingContent:
                     oneLine.setIndex( indexG.next() )
                     oneLine.writeToFile( out_obj )
