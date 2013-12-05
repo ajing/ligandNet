@@ -208,7 +208,7 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
                     numbering = getBindingMoadID( PDBID.upper(), ligandName, NumberDict )
                     #print PDBID, ligandName, numbering
                     oneLine.addLeft("\t".join( [ numbering, BioUnitID.lower(), ligandChainID, BioChainsDict[BioUnitID.lower()] ]) )
-                    oneLine.addRight("\t".join( [ str(bindingSiteNumber), PDBMemberNumberDict[PDBID.upper()], "".join(ProBiS_dict[eachBioUnit][eachligand].keys()) ])  )
+                    oneLine.addRight("\t".join( [ str(bindingSiteNumber), PDBMemberNumberDict[PDBID.upper()] ])  )
                 if not oneLine.string in existingContent:
                     oneLine.setIndex( indexG.next() )
                     oneLine.writeToFile( out_obj )
