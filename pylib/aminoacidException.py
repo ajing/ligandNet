@@ -234,8 +234,8 @@ if __name__ == "__main__":
     #richdict = richdict.obj
     #RichOutStatistics( richdict )
     # probis input stat
-    #ProbisInputStat()
+    ProbisInputStat()
     # Help to increase the speed of filtering pair cannot find file
     #ReLearningCannotFindList("outfile4")
     #SimpleFilter("outfile6")
-    AddQuestionMark("outfile6")
+    #AddQuestionMark("outfile6")

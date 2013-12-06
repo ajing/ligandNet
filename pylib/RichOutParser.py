@@ -112,9 +112,6 @@ class RichOutParser:
         ligands_cp = ligands[:]
         # get join list for ligands
         for ligandandChain in ProbisDict[biounit].keys():
-            #if biounit == "2ARX.BIO1":
-            #    print ligandandChain
-            #    print [biounit, ligandandChain]
             if self.exceptionListforJoin( biounit, ligandandChain):
                 continue
             ligand, chain = ligandandChain.split(".")
@@ -126,9 +123,6 @@ class RichOutParser:
         if len( joinlist ) < 2 or not joinlist:
             return ProbisDict
         # reorder join list, so the same order as bindingMOAD
-        if biounit.split(".")[0] == "1XR9":
-            print biounit
-            print joinlist
         ligands      = ligands_cp
         joinlist_tmp = []
         for each in ligands:
