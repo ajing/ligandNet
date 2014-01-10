@@ -154,11 +154,12 @@ class oneLineInfo:
         self.string = self.indexString() + "\t" + self.string
 
     def writeToFile( self, fileObj ):
+        # add one index for each binding site/ligand
         self.addIndexString()
         fileObj.write( self.string + "\n" )
 
 
-def isheader( PDBID, PDBMemberNumberDict ):
+def isleader( PDBID, PDBMemberNumberDict ):
     if PDBMemberNumberDict[PDBID][-1] == "-":
         return False
     return True
@@ -196,9 +197,6 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
                 oneLine.OneMoreChain( chainInfo )
             oneLine.OneMoreChain()
             ligandName, ligandChain = eachligand.split('.')
-            # 7/30/2013 for only one ligand
-            if isheader(PDBID, PDBMemberNumberDict) and onlyOneLigandEntry.checkLigand( PDBID, ligandName ):
-                continue
             if checkValid( PDBID, ligandName, validliganddict ):
                 ligandChainID = processStrangeLigandName( eachligand )
                 if BioChainsDict is None:
@@ -212,7 +210,6 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
                 if not oneLine.string in existingContent:
                     oneLine.setIndex( indexG.next() )
                     oneLine.writeToFile( out_obj )
-            # add one index for each binding site/ligand
     out_obj.close()
 
 def aqeelNumberingParse( infile ):
