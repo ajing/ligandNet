@@ -31,3 +31,6 @@ OBSOLETE = ['1UVW', '2BPL', '2EBC', '2G8O', '2OFI', '2ZCD','2ZCP', '3C67', '3C68
 # Ligand name changes file
 # this file is obsolte after Rich correct ligand names for MOAD2012
 #LIGAND_NAME_CHANGES = "LigandNameChanges.txt"
+
+# every.csv
+EVERYCSV = "every.csv"

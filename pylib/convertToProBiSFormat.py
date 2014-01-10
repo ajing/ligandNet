@@ -9,7 +9,6 @@
 
 ## For every_parser
 import sys
-import os
 from RichOutParser import RichOutParser
 from Modular import PROBIS_DIR, BIOUNIT_DIR, RICHOUT_DIR, PROTEIN_DIR, MOADINDEX, OBSOLETE
 __previous_pylib__ = "/users/ajing/pylib"
@@ -173,7 +172,6 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
     # Example for output2: 00001 ATP.123.A,ALA.43.C,TYR.44.C
     # 7/30/2013 only keep one ligand for one PDB
     out_obj = open( outfile, "a" )
-    ExistingPairs = []
     # 7/30/2013 Here is the structure to keep track only one case for each ligand, remove the duplication in biounit also
     onlyOneLigandEntry = ligandFilter()
     # 9/17 read existing output and generate continuous index
@@ -197,6 +195,9 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
                 oneLine.OneMoreChain( chainInfo )
             oneLine.OneMoreChain()
             ligandName, ligandChain = eachligand.split('.')
+            # 7/30/2013 for only one ligand for leader
+            #if isleader(PDBID, PDBMemberNumberDict) and onlyOneLigandEntry.checkLigand( PDBID, ligandName ):
+            #    continue
             if checkValid( PDBID, ligandName, validliganddict ):
                 ligandChainID = processStrangeLigandName( eachligand )
                 if BioChainsDict is None:
@@ -205,7 +206,10 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
                 else:
                     numbering = getBindingMoadID( PDBID.upper(), ligandName, NumberDict )
                     #print PDBID, ligandName, numbering
-                    oneLine.addLeft("\t".join( [ numbering, BioUnitID.lower(), ligandChainID, BioChainsDict[BioUnitID.lower()] ]) )
+                    try:
+                        oneLine.addLeft("\t".join( [ numbering, BioUnitID.lower(), ligandChainID, BioChainsDict[BioUnitID.lower()] ]) )
+                    except:
+                        print [ numbering, BioUnitID.lower(), ligandChainID, BioChainsDict[BioUnitID.lower()] ]
                     oneLine.addRight("\t".join( [ str(bindingSiteNumber), PDBMemberNumberDict[PDBID.upper()] ])  )
                 if not oneLine.string in existingContent:
                     oneLine.setIndex( indexG.next() )
@@ -249,7 +253,7 @@ def assignEachPDBwithNumberofMembers( PDBLeader_dict ):
 
 def main():
     # for everyparser of valid ligand
-    everyparser = every_parser()
+    everyparser = every_parser("every.csv")
     everyparser.find_PDBID_ValidLigand()
     pdb_with_numberofmembers = assignEachPDBwithNumberofMembers( everyparser.ALL_leader )
     infiledir = RICHOUT_DIR
