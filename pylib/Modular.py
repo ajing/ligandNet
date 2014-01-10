@@ -5,6 +5,7 @@
 PROBIS_DIR = "ProbisInput.txt"
 #PROBIS_DIR = "./ProbisInput_test.txt"
 BIOUNIT_DIR = "../../2012_biounits/"
+#BIOUNIT_DIR = "../../BindingMoad2011_test/BindingMoad2011/"
 RICHOUT_DIR = "final.txt"
 PROTEIN_DIR = "proteinChain.txt"
 PROBIS_COLNAME = [
@@ -16,7 +17,9 @@ PROBIS_COLNAME = [
                 "BINDINGSITE",
                 "BINDINGSITESIZE",
                 "HEADER",
-                "ISHEADER"
+                "ISHEADER",
+# This is for MOAD2012
+#                "BINDINGCHAIN"
                 ]
 
 # BindingMOAD numbering for PDB and binded ligands

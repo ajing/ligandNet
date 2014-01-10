@@ -33,7 +33,7 @@ def numberOfAminoAcidLigand():
                     aminoacid[PDB].append(ligand)
             except:
                 aminoacid[PDB] = [ligand]
-    everyparser = every_parser()
+    everyparser = every_parser("every.csv")
     everyparser.find_PDBID_ValidLigand()
     ALL         = everyparser.ALL
     validligand = []
@@ -50,7 +50,7 @@ def numberOfAminoAcidLigand():
 def ligandNotInFile(probisdict):
     PDBIDs   = [ each.split(".")[0].upper() for each in probisdict["BIOUNIT"] ]
     PDBIDs_len = len(PDBIDs)
-    everyparser = every_parser()
+    everyparser = every_parser("every.csv")
     everyparser.find_PDBID_ValidLigand()
     ALL         = everyparser.ALL
     PairCannotFind  = []
@@ -230,9 +230,9 @@ def ProbisInputStat():
 
 if __name__ == "__main__":
     #numberOfAminoAcidLigand()
-    #richdict = RichOutParser("final.txt")
-    #richdict = richdict.obj
-    #RichOutStatistics( richdict )
+    richdict = RichOutParser("final.txt")
+    richdict = richdict.obj
+    RichOutStatistics( richdict )
     # probis input stat
     ProbisInputStat()
     # Help to increase the speed of filtering pair cannot find file
