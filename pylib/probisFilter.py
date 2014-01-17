@@ -2,7 +2,7 @@
     filter ProbisInput.txt some satisfy aqeel's requirement
 '''
 from Modular import PROBIS_DIR, PROBIS_COLNAME
-from convertToProBiSFormat import assignEachPDBwithNumberofMembers,  assignEachPDBwithNumberofMembers, isleader, ligandFilter
+from convertToProBiSFormat import assignEachPDBwithNumberofMembers,  assignEachPDBwithNumberofMembers, isleader, ligandFilter, checkValid
 import sys
 __previous_pylib__ = "/users/ajing/pylib"
 sys.path.append(__previous_pylib__)
@@ -10,7 +10,7 @@ from every_parser import every_parser
 
 Probis_filter = PROBIS_DIR[:-4] + "_filter.txt"
 
-def GetLargeBindingSiteInfo(infile, PDBMemberNumberDict):
+def GetLargeBindingSiteInfo(infile, PDBMemberNumberDict, validdict):
     num_col = len(PROBIS_COLNAME)
     bs_size_index = PROBIS_COLNAME.index("BINDINGSITESIZE")
     biounit_index = PROBIS_COLNAME.index("BIOUNIT")
@@ -29,15 +29,16 @@ def GetLargeBindingSiteInfo(infile, PDBMemberNumberDict):
             continue
         if not PDB in large_dict:
             large_dict[PDB] = dict()
-        if not pligand in large_dict[PDB]:
-            large_dict[PDB][pligand] = 0
-        if bs_size > large_dict[PDB][pligand]:
-            large_dict[PDB][pligand] = bs_size
+        formal_ligand = checkValid(PDB, " ".join(pligand.split("_")), validdict)
+        if not formal_ligand in large_dict[PDB]:
+            large_dict[PDB][formal_ligand] = 0
+        if bs_size > large_dict[PDB][formal_ligand]:
+            large_dict[PDB][formal_ligand] = bs_size
     return large_dict
 
-def LeaderWithLargestBindingSite(infile, PDBMemberNumberDict):
+def LeaderWithLargestBindingSite(infile, PDBMemberNumberDict, validdict):
     num_col = len(PROBIS_COLNAME)
-    bsdict = GetLargeBindingSiteInfo(infile, PDBMemberNumberDict)
+    bsdict = GetLargeBindingSiteInfo(infile, PDBMemberNumberDict, validdict)
     bs_size_index = PROBIS_COLNAME.index("BINDINGSITESIZE")
     biounit_index = PROBIS_COLNAME.index("BIOUNIT")
     ligand_index  = PROBIS_COLNAME.index("LIGANDID")
@@ -52,8 +53,9 @@ def LeaderWithLargestBindingSite(infile, PDBMemberNumberDict):
         PDB     = biounit.split(".")[0].upper()
         ligand  = content[ligand_index]
         pligand = "_".join([ x.split(".")[0] for x in ligand.split("_")])
+        formal_ligand = checkValid(PDB, " ".join(pligand.split("_")), validdict)
         if isleader(PDB, PDBMemberNumberDict):
-            if bsdict[PDB][pligand] == bs_size and not onlyOneLigand.checkLigand(PDB, pligand):
+            if bsdict[PDB][formal_ligand] == bs_size and not onlyOneLigand.checkLigand(PDB, pligand):
                 newfile_obj.write(line)
         else:
             newfile_obj.write(line)
@@ -64,7 +66,7 @@ def main():
     everyparser = every_parser("every.csv")
     everyparser.find_PDBID_ValidLigand()
     pdb_with_numberofmembers = assignEachPDBwithNumberofMembers( everyparser.ALL_leader )
-    LeaderWithLargestBindingSite(PROBIS_DIR, pdb_with_numberofmembers)
+    LeaderWithLargestBindingSite(PROBIS_DIR, pdb_with_numberofmembers, everyparser.ALL)
 
 def test():
     # for everyparser of valid ligand

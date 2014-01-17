@@ -99,7 +99,6 @@ class ligandFilter:
         self.ligandtrack = dict()
 
     def checkLigand( self, PDBID, ligand ):
-        print PDBID, ligand
         if PDBID not in self.ligandtrack.keys():
             self.ligandtrack[PDBID] = [ligand]
             return False
@@ -154,9 +153,6 @@ class oneLineInfo:
     def setIndex( self, index ):
         self.index = index
 
-    def indexAdd( self ):
-        self.index = indexGenerator()
-
     def indexString( self ):
         return str( self.index ).zfill(5)
 
@@ -187,7 +183,7 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
     onlyOneLigandEntry = ligandFilter()
     # 9/17 read existing output and generate continuous index
     existingContent, index = readExistingOutput(outfile)
-    indexG = indexGenerator( index )
+    indexG = indexGenerator( index + 1 )
     for eachBioUnit in sorted( ProBiS_dict.keys() ):
         BioUnitID   = eachBioUnit
         PDBID       = BioUnitID.split('.')[0]

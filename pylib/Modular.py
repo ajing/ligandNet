@@ -3,7 +3,7 @@
     Please call all files in corresponding data directory
 """
 PROBIS_DIR = "ProbisInput.txt"
-#PROBIS_DIR = "./ProbisInput_test.txt"
+#PROBIS_DIR = "./ProbisInput_filter.txt"
 BIOUNIT_DIR = "../../2012_biounits/"
 #BIOUNIT_DIR = "../../BindingMoad2011_test/BindingMoad2011/"
 RICHOUT_DIR = "final.txt"
