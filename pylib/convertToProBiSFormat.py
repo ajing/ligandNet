@@ -17,6 +17,9 @@ __OUTPUT__ = PROBIS_DIR
 sys.path.append(__previous_pylib__)
 from every_parser import every_parser
 
+# parameters:
+alpha = 0.5   # only when ligands contains more than certain percent as the ligand name, I consider this ligand can map to certain ligand in MOAD
+
 def processStrangeLigandName( completeLigandName ):
     # Here completeLigandName means like BGC.D or GLC BGC.B_C
     ligandName = completeLigandName.split(".")[0]
@@ -36,7 +39,7 @@ def processStrangeLigandName( completeLigandName ):
                 newNamelist.append( ligandNamelist[i] + "." + ChainIDlist[i] )
             except:
                 print "Strange ligand name: " + completeLigandName
-                raise TypeError
+                raise TypeError()
         return "_".join( newNamelist )
 
 def returnChainsForPDBID( BioUnitChainsDIR ):
@@ -53,26 +56,33 @@ def returnChainsForPDBID( BioUnitChainsDIR ):
     return BioUnitChainDict
 
 def contains(small, big):
-    if len(big) > 3:
+    if len(big) > 2:
         return contains_simple(small, big)
-    for i in xrange(len(big)-len(small)+1):
-        for j in xrange(len(small)):
-            if big[i+j] != small[j]:
-                break
+    if len(small) < 2:
+        if small[0] in big:
+            return True
         else:
-            return i, i+len(small)
-    return False
+            return False
+    else:
+        if sorted(small) == sorted(big):
+            return True
+        else:
+            return False
 
 def contains_simple(small, big):
     for each in small:
         if not each in big:
             return False
-    return True
+    if len(small) * 1.0 / len(big) > alpha:
+        return True
+    else:
+        return False
 
 def ligandCompare( ligand1, ligand2 ):
     list1 = sorted( ligand1.split() )
     list2 = sorted( ligand2.split() )
-    if contains( list1, list2 ) or contains( list2, list1 ):
+    list_small, list_big = sorted([list1, list2], key = len)
+    if contains( list_small, list_big ):
         return True
     return False
 
@@ -89,6 +99,7 @@ class ligandFilter:
         self.ligandtrack = dict()
 
     def checkLigand( self, PDBID, ligand ):
+        print PDBID, ligand
         if PDBID not in self.ligandtrack.keys():
             self.ligandtrack[PDBID] = [ligand]
             return False
@@ -190,7 +201,7 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
             # 9/6 sort protein chain id also
             for eachproteinChainID in sorted( ProBiS_dict[eachBioUnit][eachligand].keys() ):
                 ProBiS_dict[eachBioUnit][eachligand][eachproteinChainID].sort()
-                bindingSiteNumber = bindingSiteNumber + len(ProBiS_dict[eachBioUnit][eachligand][eachproteinChainID])
+                bindingSiteNumber += len(ProBiS_dict[eachBioUnit][eachligand][eachproteinChainID])
                 chainInfo = eachproteinChainID + " and (" + ",".join( map( str, ProBiS_dict[eachBioUnit][eachligand][eachproteinChainID] ) ) + ")"
                 oneLine.OneMoreChain( chainInfo )
             oneLine.OneMoreChain()
@@ -207,10 +218,11 @@ def makeProBiSInput( ProBiS_dict, validliganddict, outfile, outfile2, BioChainsD
                     numbering = getBindingMoadID( PDBID.upper(), ligandName, NumberDict )
                     #print PDBID, ligandName, numbering
                     try:
-                        oneLine.addLeft("\t".join( [ numbering, BioUnitID.lower(), ligandChainID, BioChainsDict[BioUnitID.lower()] ]) )
+                        oneLine.addLeft("\t".join( [ numbering, BioUnitID.lower(), ligandChainID, BioChainsDict[BioUnitID.lower()]]) )
                     except:
                         print [ numbering, BioUnitID.lower(), ligandChainID, BioChainsDict[BioUnitID.lower()] ]
-                    oneLine.addRight("\t".join( [ str(bindingSiteNumber), PDBMemberNumberDict[PDBID.upper()] ])  )
+                        raise TypeError("some keys cannot be found in a dictionary object")
+                    oneLine.addRight("\t".join( [ str(bindingSiteNumber), PDBMemberNumberDict[PDBID.upper()], "".join(sorted(ProBiS_dict[eachBioUnit][eachligand].keys()))]) )
                 if not oneLine.string in existingContent:
                     oneLine.setIndex( indexG.next() )
                     oneLine.writeToFile( out_obj )
@@ -278,6 +290,7 @@ def test():
     everyparser.find_PDBID_ValidLigand()
     ligands = "ILE LEU GLY PRO SER VAL TYR"
     print checkValid("1XR9", ligands, everyparser.ALL)
+    print checkValid("4G0A", "G  U", everyparser.ALL)
 
 if __name__ == "__main__":
     #test()

@@ -19,7 +19,7 @@ PROBIS_COLNAME = [
                 "HEADER",
                 "ISHEADER",
 # This is for MOAD2012
-#                "BINDINGCHAIN"
+                "BINDINGCHAIN"
                 ]
 
 # BindingMOAD numbering for PDB and binded ligands

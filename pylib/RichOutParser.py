@@ -131,8 +131,8 @@ class RichOutParser:
                 joinlist_tmp.append( ligand )
                 joinlist.remove( ligand )
         joinlist = joinlist_tmp
-        if biounit.split(".")[0] == "1XR9":
-            print joinlist
+        #if biounit.split(".")[0] == "1XR9":
+        #    print joinlist
         # join binding sites for joinlist
         # build key
         ligandlist = []

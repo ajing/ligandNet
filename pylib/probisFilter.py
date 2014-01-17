@@ -23,13 +23,13 @@ def GetLargeBindingSiteInfo(infile, PDBMemberNumberDict):
         bs_size = int(content[bs_size_index])
         biounit = content[biounit_index]
         PDB     = biounit.split(".")[0].upper()
-        ligand  = content[ligand_index]
-        pligand = "_".join([ x.split(".")[0] for x in ligand.split("_")])
+        ligand  = content[ligand_index]  # ligand from ProbisInput.txt LIG.A_LAG.B
+        pligand = "_".join([ x.split(".")[0] for x in ligand.split("_")]) # pure ligand name LIG_LAG
         if not isleader(PDB, PDBMemberNumberDict):
             continue
         if not PDB in large_dict:
             large_dict[PDB] = dict()
-        if not ligand in large_dict[PDB]:
+        if not pligand in large_dict[PDB]:
             large_dict[PDB][pligand] = 0
         if bs_size > large_dict[PDB][pligand]:
             large_dict[PDB][pligand] = bs_size
