@@ -1,0 +1,28 @@
+# Date files
+additionalInfo.txt_too_old: additional information file for Cytoscape input
+every.csv: MOAD2012 valid/invalid and activity information
+final.txt: Rich's accumuative result with 4.5A cutoff
+MOADindex.txt: MOAD index file for PDB ligand
+notfind: PDB ligand cannot find in final.txt
+ObsoleteLigandName/: obsolete already
+ProbisInput_filter.txt: ProbisInput_filter with most recent filter function which use PDB ligand ID from MOAD
+ProbisInput_filter.txt_1_17: filter function with PDB ligand name from final.txt, but contains functions changed
+ProbisInput_filter.txt_old: no filter and contain function changed
+ProbisInput.txt: Probis input formatting for final.txt
+ProbisInput.txt_aqeel: the file aqeel use, very old file with duplicates in leader ligands
+ProbisInput.txt_cp: file before contains function changed
+ProbisInput.txt_previous_filter: previous ligandFilter() in converToProBiSFormat.py
+
+
+# executible files
+aminoacidException.py: find statistics about RichOut and ProbisInput, and missing PDB-ligands in RichOut and ProbisInput
+*converToProBiSFormat.py: main function to convert RichOut(final.txt) to ProbisInput.txt
+fetchfile.sh: fetch newest every.csv file
+ligandNameChanges.py: an obsolete files dealing with un-updated ligand names
+makeCytoInput_simple.py: merge two files to get Cytoscape input file
+probisFilter.py: refactoring previous converToProBiSFormat.py, and move all filter function to this file
+ProBiSObj.py: refactoring..
+
+
+# Operating files:
+experiment/: temperary folder to check files

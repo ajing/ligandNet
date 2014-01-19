@@ -90,7 +90,7 @@ def checkValid( PDBID, ligand, validdict ):
     ligandlist = validdict[ PDBID.upper() ]
     for each in ligandlist.keys():
         if ligandCompare( ligand, each ):
-            return ligandlist[ each ]
+            return each
     return False
 
 class ligandFilter:

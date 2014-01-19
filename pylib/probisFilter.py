@@ -54,6 +54,7 @@ def LeaderWithLargestBindingSite(infile, PDBMemberNumberDict, validdict):
         ligand  = content[ligand_index]
         pligand = "_".join([ x.split(".")[0] for x in ligand.split("_")])
         formal_ligand = checkValid(PDB, " ".join(pligand.split("_")), validdict)
+        print formal_ligand
         if isleader(PDB, PDBMemberNumberDict):
             if bsdict[PDB][formal_ligand] == bs_size and not onlyOneLigand.checkLigand(PDB, pligand):
                 newfile_obj.write(line)
