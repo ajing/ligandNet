@@ -20,6 +20,7 @@ aminoacidException.py: find statistics about RichOut and ProbisInput, and missin
 fetchfile.sh: fetch newest every.csv file
 ligandNameChanges.py: an obsolete files dealing with un-updated ligand names
 makeCytoInput_simple.py: merge two files to get Cytoscape input file
+makeCytoInput.py: Cytoscape input file with more properties
 probisFilter.py: refactoring previous converToProBiSFormat.py, and move all filter function to this file
 ProBiSObj.py: refactoring..
 

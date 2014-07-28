@@ -4,12 +4,12 @@
 from ProbisInputReader import Probis
 
 # addtional info file directory
-__ADDITIONAL_INFO__ = "../Data/additionalInfo.txt"
-__CYTOSCAPE_INPUT__ = "../Data/CytoscapeInput.txt"
+__ADDITIONAL_INFO__ = "additionalInfo.txt"
+__CYTOSCAPE_INPUT__ = "CytoscapeInput.txt"
 PROTEIN_CLASS = { 1:"OXIDOREDUCTASES", 2:"TRANSFERASES", 3:"HYDROLASES", 4:"LYASES", 5:"ISOMERASES", 6:"LIGASES", 7:"UNCLASSIFIED", 8:"BINDING", 9:"FOLDING", 10:"IMMUNE", 11:"MOBILE", 12:"OTHER", 14:"TOXIN_VIRAL", 15:"TRANSCRIPT_TRANSLATE", 16:"TRANSPORT", 17: "CELL_CYCLE", 18:"SIGNAL_HORMONE", 19:"STRUCTURAL"}
 AMINO_ACID = [ "ALA", "CYS", "ASP", "GLU", "PHE", "GLY", "HIS", "ILE", "LYS", "LEU", "MET", "ASN", "PRO", "GLN", "ARG", "SER", "THR", "VAL", "TRP", "TYR"]
-NEWNAME_COLUMN = {"INDEX": "BS_ID", "BINDINGSITESIZE": "BS_Size", "ISHEADER": "Leader", "pdbFile": "PDB", "name": "Lig_Name", "affinmicromolar": "Bdata", "ecNumber": "EC_Num"}
-NEWNAME_ORDER  = ["BS_ID", "BS_Size", "Leader", "PDB", "EC_Num", "Class", "mw", "Bdata", "Lig_Type", "Lig_Name", "Lig_Size"]
+NEWNAME_COLUMN = {"INDEX": "BS_ID", "BINDINGSITESIZE": "BS_Size", "ISHEADER": "Leader", "pdbFile": "PDB", "name": "Lig_Name", "affinmicromolar": "Bdata", "ecNumber": "EC_Num", "smiles": "smiles"}
+NEWNAME_ORDER  = ["BS_ID", "BS_Size", "Leader", "PDB", "Lig_Type", "Bdata", "EC_Num", "Lig_Name", "mw", "Class", "Lig_Size", "smiles"]
 
 def AdditionalInfoParser( infile ):
     # So here we assume the file has colname
@@ -68,8 +68,8 @@ def TranslateColname(namelist):
 
 def GetOrder(colnames):
     orderlist = []
-    for each in colnames:
-        orderlist.append(NEWNAME_ORDER.index(each))
+    for each in NEWNAME_ORDER:
+        orderlist.append(colnames.index(each))
     return orderlist
 
 def ReorderList(oldlist, order):

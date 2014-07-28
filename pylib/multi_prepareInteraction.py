@@ -16,10 +16,11 @@ from functools import partial
 import time
 import random
 
+from Modular import BIOUNIT_DIR
+print BIOUNIT_DIR
 __AMINOACIDDIR__ = "/users/dicksmit/amino_acid_counter.pl"
-__BIOUNITDIR__ = "/users/ajing/BindingMOAD/biou_test/"
-__INPUTDIR__ = "/users/ajing/ligandNet/2012_biounits/"
-__WORKDIR__ = "/users/ajing/ligandNet/tmpfiles/"
+__INPUTDIR__ = BIOUNIT_DIR
+__WORKDIR__ = "/users/ajing/ligandNet/tmpfiles2013/"
 
 #################### Parameter ########################
 __MAX_DISTANCE__ = 4.5
