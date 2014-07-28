@@ -1,5 +1,6 @@
 '''
     filter ProbisInput.txt some satisfy aqeel's requirement
+    requirement like only keep the leader with largest binding site
 '''
 from Modular import PROBIS_DIR, PROBIS_COLNAME
 from convertToProBiSFormat import assignEachPDBwithNumberofMembers,  assignEachPDBwithNumberofMembers, isleader, ligandFilter, checkValid
