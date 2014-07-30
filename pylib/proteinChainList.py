@@ -92,6 +92,7 @@ def returnProteinChainIDSimple( biounitdir ):
         if line.startswith( "SEQRES" ):
             chainID = line[11]
             if chainID in chainIDList and not chainID in proteinChains:
+                # so only chain ID with more than 14 residues will be recorded
                 proteinChains.append( chainID )
             else:
                 chainIDList.append( chainID )
