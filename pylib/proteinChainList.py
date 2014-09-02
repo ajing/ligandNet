@@ -11,14 +11,16 @@ __previous_pylib__ = "/users/ajing/pylib"
 sys.path.append(__previous_pylib__)
 from every_parser import every_parser
 
+from Modular import BIOUNIT_DIR, EVERYCSV
+
 import Bio
 from Bio.PDB.PDBExceptions import PDBConstructionException
 ############## exception for ligand which is less than 10 residues, but not in every.csv file ##############
 __EXCEPTION_FILE__ = "/users/ajing/ligandNet/Error/proteinChainException.txt"
 __ERROR_FILE__ = "/users/ajing/ligandNet/Error/proteinChainError.txt"
-__BIOUNIT_DIR__ = "/users/ajing/ligandNet/2012_biounits/"
-__BIOUNIT_CANNOT_READ__ = "/users/ajing/ligandNet/Data/defaultProteinChainList.txt"
-__OUTPUT_PROTEINLIGAND__ = "/users/ajing/ligandNet/Data/proteinChain.txt"
+__BIOUNIT_DIR__ = BIOUNIT_DIR
+__BIOUNIT_CANNOT_READ__ = "defaultProteinChainList.txt"
+__OUTPUT_PROTEINLIGAND__ = "proteinChain.txt"
 
 from multiprocessing import Pool
 # a global variable for ALL
@@ -183,17 +185,18 @@ def main():
         pass
     if not os.path.exists(__OUTPUT_PROTEINLIGAND__):
         addDefaultBioUnit()
-    everyparser = every_parser()
+    everyparser = every_parser(EVERYCSV)
     everyparser.find_PDBID_ValidLigand()
     global __ALL__
     __ALL__ = everyparser.ALL
     pool = Pool(processes = 7)
     argumentlist = [ __BIOUNIT_DIR__ + filename for filename in removeExceptionFile( BioUnitFilter(__BIOUNIT_DIR__, __OUTPUT_PROTEINLIGAND__) ) ]
     ####################### 8/19/2013 checking for what's wrong with each file  #########################
-    #runOneBioUnit(argumentlist)
+    runOneBioUnit(argumentlist)
     #####################################################################################################
-    result = pool.map_async( processOneBioUnit, argumentlist )
-    resulttxt = result.wait()
+    print argumentlist
+    #result = pool.map_async( processOneBioUnit, argumentlist )
+    #resulttxt = result.wait()
     print resulttxt
 
 if __name__ == "__main__":

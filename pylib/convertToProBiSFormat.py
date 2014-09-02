@@ -10,7 +10,7 @@
 ## For every_parser
 import sys
 from RichOutParser import RichOutParser
-from Modular import PROBIS_DIR, BIOUNIT_DIR, RICHOUT_DIR, PROTEIN_DIR, MOADINDEX, OBSOLETE
+from Modular import PROBIS_DIR, BIOUNIT_DIR, RICHOUT_DIR, PROTEIN_DIR, MOADINDEX, OBSOLETE, EVERYCSV
 __previous_pylib__ = "/users/ajing/pylib"
 __INPUTDIR__ = BIOUNIT_DIR
 __OUTPUT__ = PROBIS_DIR
@@ -261,7 +261,7 @@ def assignEachPDBwithNumberofMembers( PDBLeader_dict ):
 
 def main():
     # for everyparser of valid ligand
-    everyparser = every_parser("every.csv")
+    everyparser = every_parser(EVERYCSV)
     everyparser.find_PDBID_ValidLigand()
     pdb_with_numberofmembers = assignEachPDBwithNumberofMembers( everyparser.ALL_leader )
     infiledir = RICHOUT_DIR
