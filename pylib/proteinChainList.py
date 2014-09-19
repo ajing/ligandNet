@@ -193,11 +193,11 @@ def main():
     pool = Pool(processes = 7)
     argumentlist = [ __BIOUNIT_DIR__ + filename for filename in removeExceptionFile( BioUnitFilter(__BIOUNIT_DIR__, __OUTPUT_PROTEINLIGAND__) ) ]
     ####################### 8/19/2013 checking for what's wrong with each file  #########################
-    runOneBioUnit(argumentlist)
+    #runOneBioUnit(argumentlist)
     #####################################################################################################
     print argumentlist
-    #result = pool.map_async( processOneBioUnit, argumentlist )
-    #resulttxt = result.wait()
+    result = pool.map_async( processOneBioUnit, argumentlist )
+    resulttxt = result.wait()
     print resulttxt
 
 if __name__ == "__main__":

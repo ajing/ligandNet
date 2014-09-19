@@ -12,6 +12,8 @@ __previous_pylib__ = "/users/ajing/pylib"
 sys.path.append(__previous_pylib__)
 from every_parser import every_parser
 
+from Modular import EVERYCSV
+
 __AMINO_ACID__ = [ "ALA", "CYS", "ASP", "GLU", "PHE", "GLY", "HIS", "ILE", "LYS", "LEU", "MET", "ASN", "PRO", "GLN", "ARG", "SER", "THR", "VAL", "TRP", "TYR"]
 
 from RichOutParser import RichOutParser
@@ -33,7 +35,7 @@ def numberOfAminoAcidLigand():
                     aminoacid[PDB].append(ligand)
             except:
                 aminoacid[PDB] = [ligand]
-    everyparser = every_parser("every.csv")
+    everyparser = every_parser(EVERYCSV)
     everyparser.find_PDBID_ValidLigand()
     ALL         = everyparser.ALL
     validligand = []
@@ -50,7 +52,7 @@ def numberOfAminoAcidLigand():
 def ligandNotInFile(probisdict):
     PDBIDs   = [ each.split(".")[0].upper() for each in probisdict["BIOUNIT"] ]
     PDBIDs_len = len(PDBIDs)
-    everyparser = every_parser("every.csv")
+    everyparser = every_parser(EVERYCSV)
     everyparser.find_PDBID_ValidLigand()
     ALL         = everyparser.ALL
     PairCannotFind  = []

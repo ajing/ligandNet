@@ -6,22 +6,9 @@
 import sys
 __previous_pylib__ = "/users/ajing/pylib"
 sys.path.append(__previous_pylib__)
-# The original colname of file
-_COLNAME = [
-    "BIOUNIT",
-    "BIOUNITFILE",
-    "ligandName",
-    "ligandChainID",
-    "ligandChainIDNEW",
-    "proteinChainID",
-    "residueName",
-    "residueNumber",
-    "insertion",
-    "AtomName",
-    "AtomNumber",
-    "Distance",
-    "Metal"
-]
+
+from Modular import RICH_COLNAME
+_COLNAME = RICH_COLNAME
 
 class RichOutParser:
     def __init__( self, Richdir, validdict = None):
@@ -56,6 +43,14 @@ class RichOutParser:
                 output_dict[ content_dict["BIOUNIT"] ][ content_dict["ligandName"] + "." + content_dict["ligandChainID"] ][ content_dict["proteinChainID"] ]
             except:
                 output_dict[ content_dict["BIOUNIT"] ][ content_dict["ligandName"] + "." + content_dict["ligandChainID"] ][ content_dict["proteinChainID"] ]  = []
+
+            try:
+                int(content_dict["residueNumber"])
+            except:
+                print line
+                print content_dict
+                continue
+
             if not int(content_dict["residueNumber"]) in output_dict[ content_dict["BIOUNIT"] ][ content_dict["ligandName"] + "." + content_dict["ligandChainID"] ][ content_dict["proteinChainID"] ]:
                 output_dict[ content_dict["BIOUNIT"] ][ content_dict["ligandName"] + "." + content_dict["ligandChainID"] ][ content_dict["proteinChainID"] ].append( int(content_dict["residueNumber"]) )
                 output_dict[ content_dict["BIOUNIT"] ][ content_dict["ligandName"] + "." + content_dict["ligandChainID"] ][ content_dict["proteinChainID"] ].sort()

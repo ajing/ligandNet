@@ -79,7 +79,7 @@ def filterInputFile(filename, inputdir):
 
 def goThroughAllFiles():
     # For only run on file in __INPUTDIR__
-    pool = Pool(processes = 6)
+    pool = Pool(processes = 5)
     inputdir = __INPUTDIR__
     argumentlist = [ __INPUTDIR__ + filename for filename in os.listdir( __INPUTDIR__ ) ]
    # print argumentlist

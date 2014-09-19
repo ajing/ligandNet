@@ -90,7 +90,7 @@ def checkValid( PDBID, ligand, validdict ):
     ligandlist = validdict[ PDBID.upper() ]
     for each in ligandlist.keys():
         if ligandCompare( ligand, each ):
-            return each
+            return ligandlist[each]
     return False
 
 class ligandFilter:
@@ -229,9 +229,12 @@ def aqeelNumberingParse( infile ):
     numberdict = dict()
     for line in open( infile ):
         content = line.strip().split("\t")
-        numbering = content[0].strip()
-        protein   = content[1].strip()
-        ligand    = content[2].strip()
+        try:
+            numbering = content[0].strip()
+            protein   = content[1].strip()
+            ligand    = content[2].strip()
+        except:
+            raise Exception("cannot process:" + line)
         if protein in numberdict:
             numberdict[ protein ][ ligand ] = numbering
         else:
@@ -274,6 +277,8 @@ def main():
     aqeeldict   = aqeelNumberingParse( aqeelfile )
     richout     = RichOutParser( infiledir, everyparser.ALL )
     probisdict  = richout.obj
+    print "everyparser.ALL:"
+    print everyparser.ALL
     makeProBiSInput( probisdict, everyparser.ALL, __OUTPUT__, outfiledir2, proteinchaindict, aqeeldict, pdb_with_numberofmembers)
 
 def test():
@@ -290,4 +295,12 @@ def test():
 
 if __name__ == "__main__":
     #test()
+
+    #everyparser = every_parser(EVERYCSV)
+    #everyparser.find_PDBID_ValidLigand()
+    #print everyparser.ALL.keys()
+    #print everyparser.ALL['10GS']
+    #print checkValid('10GS', 'VWW', everyparser.ALL)
+    #print checkValid('10GS', 'MES', everyparser.ALL)
+
     main()
